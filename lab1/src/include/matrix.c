@@ -23,9 +23,9 @@ int input(Matrix* matrix) {
     printf("%s", "Enter m: ");
     scanf("%d", &m);
 
-    if (m <= 0) {
-        printf("%s\n","Wrong input. Try again");
-        return EXIT_FAILURE;
+    while (m <= 0) {
+        printf("%s","Wrong input. Try again: ");
+        scanf("%d", &m);
     }
 
     matrix->size = m;
@@ -37,9 +37,9 @@ int input(Matrix* matrix) {
         printf("%s", "Enter current n: ");
         scanf("%d", &n);
         
-        if (n <= 0) {
-            printf("%s\n","Wrong input. Try again");
-            return EXIT_FAILURE;
+        while (n <= 0) {
+            printf("%s","Wrong input. Try again: ");
+            scanf("%d", &n);
         }
         
         cur_line->size = n;
@@ -54,7 +54,7 @@ int input(Matrix* matrix) {
     return EXIT_SUCCESS;
 }
 
-int get_first_smallest(int size, int* data) {
+static int get_first_smallest(int size, int* data) {
     int idx = -1;
     for (int i = 0; i < size - 1; i++) {
         if (data[i + 1] > data[i]) {
@@ -66,7 +66,7 @@ int get_first_smallest(int size, int* data) {
     return idx;
 }
 
-int get_last_largest(int size, int* data) {
+static int get_last_largest(int size, int* data) {
     int idx = -1;
     for (int i = size; i > 1; i--) {
         if (data[i] < data[i - 1]) {
@@ -76,4 +76,26 @@ int get_last_largest(int size, int* data) {
     }
 
     return idx;
+}
+
+static inline void swap(int *ptr1, int *ptr2) {
+    int tmp = 0;
+    *ptr1 = *ptr2;
+    *ptr2 = tmp;
+}
+
+void _free(Matrix matrix) {
+    Line* line = NULL;
+    if (matrix.size != 0 && matrix.lines != NULL) {
+        for (int i = 0; i < matrix.size; i++) {
+            line = matrix.lines + i;
+            if (line->size != 0 && line->data != NULL) {
+                free(line->data);
+            }
+        }
+        free(matrix.lines);
+    }
+
+    matrix.size = 0;
+    matrix.lines = NULL;
 }

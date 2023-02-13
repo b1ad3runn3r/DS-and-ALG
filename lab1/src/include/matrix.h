@@ -15,9 +15,13 @@ void print(Matrix matrix);
 
 int input(Matrix *matrix);
 
-int get_first_smallest(int size, int *data);
+static int get_first_smallest(int size, int *data);
 
-int get_last_largest(int size, int *data);
+static int get_last_largest(int size, int *data);
+
+static inline void swap(int *ptr1, int *ptr2);
+
+void _free(Matrix matrix);
 
 void task(Matrix* matrix);
 

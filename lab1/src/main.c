@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "include/matrix.h"
 
 int main() {
@@ -11,7 +12,6 @@ int main() {
     printf("%s\n", "Original matrix");
     print(matrix);
 
-    
-
+    _free(matrix);
     return EXIT_SUCCESS;
 }
