@@ -54,7 +54,7 @@ int input(Matrix* matrix) {
     return EXIT_SUCCESS;
 }
 
-static int get_first_smallest(int size, int* data) {
+static int get_first_larger(int size, int* data) {
     int idx = -1;
     for (int i = 0; i < size - 1; i++) {
         if (data[i + 1] > data[i]) {
@@ -66,7 +66,7 @@ static int get_first_smallest(int size, int* data) {
     return idx;
 }
 
-static int get_last_largest(int size, int* data) {
+static int get_last_smaller(int size, int* data) {
     int idx = -1;
     for (int i = size; i > 1; i--) {
         if (data[i] < data[i - 1]) {
@@ -80,6 +80,7 @@ static int get_last_largest(int size, int* data) {
 
 static inline void swap(int *ptr1, int *ptr2) {
     int tmp = 0;
+    tmp = *ptr1;
     *ptr1 = *ptr2;
     *ptr2 = tmp;
 }
