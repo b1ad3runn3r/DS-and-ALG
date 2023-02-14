@@ -23,6 +23,6 @@ static inline void swap(int *ptr1, int *ptr2);
 
 void _free(Matrix matrix);
 
-void task(Matrix* matrix);
+int task(Matrix old, Matrix *new);
 
 #endif // MATRIX_H

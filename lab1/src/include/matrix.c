@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 void print(Matrix matrix) {
     Line* cur_row = NULL;
@@ -68,7 +69,7 @@ static int get_first_larger(int size, int* data) {
 
 static int get_last_smaller(int size, int* data) {
     int idx = -1;
-    for (int i = size; i > 1; i--) {
+    for (int i = size - 1; i > 1; i--) {
         if (data[i] < data[i - 1]) {
             idx = i;
             break;
@@ -99,4 +100,46 @@ void _free(Matrix matrix) {
 
     matrix.size = 0;
     matrix.lines = NULL;
+}
+
+int task(Matrix old, Matrix* new) {
+    /* Part 1. Copy old matrix to new */
+    new->size = old.size;
+    Line *tmp = (Line *)calloc(new->size, sizeof(Line));
+
+    if (tmp == NULL) {
+        return EXIT_FAILURE;
+    }
+
+    new->lines = tmp;
+    Line *l_old = old.lines, *l_new = new->lines;  //old and new matrices lines pointers
+    
+    int l_new_size = 0;
+    int *l_new_data = NULL;
+
+    for (int i = 0; i < new->size; i++) {
+        l_new_size = l_old->size;
+        l_new_data = (int *)calloc(l_new_size, sizeof(int));
+
+        if (l_new_data == NULL) {
+            return EXIT_FAILURE;
+        }
+
+        memcpy(l_new_data, l_old->data, l_new_size * sizeof(int));
+        int idx1 = get_first_larger(l_new_size, l_new_data);
+        int idx2 = get_last_smaller(l_new_size, l_new_data);
+
+        /* Part 2. Swap numbers by desired conditions */
+        if (idx1 != -1 && idx2 != -1) {
+            swap(l_new_data + idx1, l_new_data + idx2);
+        }
+
+        l_new->data = l_new_data;
+        l_new->size = l_new_size;
+
+        l_old += 1;
+        l_new += 1;
+    }
+
+    return EXIT_SUCCESS;
 }
