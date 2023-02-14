@@ -32,6 +32,8 @@ int input(Matrix* matrix) {
     matrix->size = m;
     matrix->lines = (Line *)calloc(m, sizeof(Line));
 
+    if (matrix->lines == NULL) return EXIT_FAILURE;
+
     for (int i = 0; i < m; i++) {
         cur_line = (matrix->lines + i);
 
@@ -45,6 +47,8 @@ int input(Matrix* matrix) {
         
         cur_line->size = n;
         cur_line->data = (int *)calloc(n, sizeof(int));
+
+        if (cur_line->data == NULL) return EXIT_FAILURE;
         
         printf("%s", "Now enter desired numbers: ");
         for (int j = 0; j < n; j++) {
@@ -105,13 +109,10 @@ void _free(Matrix matrix) {
 int task(Matrix old, Matrix* new) {
     /* Part 1. Copy old matrix to new */
     new->size = old.size;
-    Line *tmp = (Line *)calloc(new->size, sizeof(Line));
+    new->lines = (Line *)calloc(new->size, sizeof(Line));
 
-    if (tmp == NULL) {
-        return EXIT_FAILURE;
-    }
+    if (new->lines == NULL) return EXIT_FAILURE;
 
-    new->lines = tmp;
     Line *l_old = old.lines, *l_new = new->lines;  //old and new matrices lines pointers
     
     int l_new_size = 0;
@@ -121,9 +122,7 @@ int task(Matrix old, Matrix* new) {
         l_new_size = l_old->size;
         l_new_data = (int *)calloc(l_new_size, sizeof(int));
 
-        if (l_new_data == NULL) {
-            return EXIT_FAILURE;
-        }
+        if (l_new_data == NULL) return EXIT_FAILURE;
 
         memcpy(l_new_data, l_old->data, l_new_size * sizeof(int));
         int idx1 = get_first_larger(l_new_size, l_new_data);

@@ -7,6 +7,7 @@ int main() {
     Matrix matrix_new = {0, NULL};
 
     if (input(&matrix_old)) {
+        _free(matrix_old);
         return EXIT_FAILURE;
     }
 
