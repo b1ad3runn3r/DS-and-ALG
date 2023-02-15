@@ -93,8 +93,7 @@ static int get_last_smaller(int size, int* data) {
 }
 
 static inline void swap(int *ptr1, int *ptr2) {
-    int tmp = 0;
-    tmp = *ptr1;
+    int tmp = *ptr1;
     *ptr1 = *ptr2;
     *ptr2 = tmp;
 }
