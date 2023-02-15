@@ -13,6 +13,8 @@ typedef struct Matrix {
 
 void print(Matrix matrix);
 
+static int read_int(int *num, int is_idx);
+
 int input(Matrix *matrix);
 
 static int get_first_larger(int size, int *data);

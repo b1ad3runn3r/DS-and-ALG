@@ -17,17 +17,30 @@ void print(Matrix matrix) {
     }
 }
 
+static int read_int(int *num, int is_idx){
+    int n = 0;
+    while (n == 0) {
+        n = scanf("%d", num);
+        if (n < 0) {
+            return EXIT_FAILURE;
+        } 
+        
+        else if (n == 0 || (is_idx && *num <= 0)) {
+            printf("%s\n","Wrong input. Try again: ");
+            scanf("%*c"); // Cleaning input buffer 
+        }
+    }
+
+    return EXIT_SUCCESS;
+}
+
 int input(Matrix* matrix) {
     Line *cur_line = NULL;
 
     int n = 0, m = 0;
     printf("%s", "Enter m: ");
-    scanf("%d", &m);
 
-    while (m <= 0) {
-        printf("%s","Wrong input. Try again: ");
-        scanf("%d", &m);
-    }
+    if (read_int(&m, 1)) return EXIT_FAILURE;
 
     matrix->size = m;
     matrix->lines = (Line *)calloc(m, sizeof(Line));
@@ -38,12 +51,8 @@ int input(Matrix* matrix) {
         cur_line = (matrix->lines + i);
 
         printf("%s", "Enter current n: ");
-        scanf("%d", &n);
         
-        while (n <= 0) {
-            printf("%s","Wrong input. Try again: ");
-            scanf("%d", &n);
-        }
+        if (read_int(&n, 1)) return EXIT_FAILURE;
         
         cur_line->size = n;
         cur_line->data = (int *)calloc(n, sizeof(int));
@@ -52,7 +61,7 @@ int input(Matrix* matrix) {
         
         printf("%s", "Now enter desired numbers: ");
         for (int j = 0; j < n; j++) {
-            scanf("%d", cur_line->data + j);
+            if (read_int(cur_line->data + j, 0)) return EXIT_FAILURE;
         }
     }
 
