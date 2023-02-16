@@ -6,8 +6,7 @@ set(CMAKE_C_STANDARD 99)
 
 
 set(SRC src)
-set(INC src/include)
 
-FILE(GLOB INC_SRC ${INC}/*.c)
+FILE(GLOB INC_SRC ${SRC}/*.c)
 
-add_executable(lab1 ${SRC}/main.c ${INC_SRC})
+add_executable(lab1 ${INC_SRC})

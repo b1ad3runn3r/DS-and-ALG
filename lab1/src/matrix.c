@@ -1,18 +1,18 @@
-#include "matrix.h"
+#include "include/matrix.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 void print(Matrix matrix) {
-    Line* cur_row = NULL;
     if (matrix.size != 0 && matrix.lines != NULL) {
+        Line* cur_row = matrix.lines;
         for (int i = 0; i < matrix.size; i++) {
-            cur_row = matrix.lines + i;
             for (int j = 0; j < cur_row->size; j++) {
                 printf("%d ", (cur_row->data)[j]);
             }
             printf("\n");
+            cur_row += 1;
         }
     }
 }
@@ -21,9 +21,7 @@ static int read_int(int *num, int is_idx){
     int n = 0;
     while (n == 0) {
         n = scanf("%d", num);
-        if (n < 0) {
-            return EXIT_FAILURE;
-        } 
+        if (n < 0) return EXIT_FAILURE;
         
         else if (n == 0 || (is_idx && *num <= 0)) {
             printf("%s\n","Wrong input. Try again: ");
@@ -35,8 +33,6 @@ static int read_int(int *num, int is_idx){
 }
 
 int input(Matrix* matrix) {
-    Line *cur_line = NULL;
-
     int n = 0, m = 0;
     printf("%s", "Enter m: ");
 
@@ -46,10 +42,9 @@ int input(Matrix* matrix) {
     matrix->lines = (Line *)calloc(m, sizeof(Line));
 
     if (matrix->lines == NULL) return EXIT_FAILURE;
+    Line *cur_line = matrix->lines;
 
     for (int i = 0; i < m; i++) {
-        cur_line = (matrix->lines + i);
-
         printf("%s", "Enter current n: ");
         
         if (read_int(&n, 1)) return EXIT_FAILURE;
@@ -63,33 +58,26 @@ int input(Matrix* matrix) {
         for (int j = 0; j < n; j++) {
             if (read_int(cur_line->data + j, 0)) return EXIT_FAILURE;
         }
+        cur_line += 1;
     }
 
     return EXIT_SUCCESS;
 }
 
-static int get_first_larger(int size, int* data) {
-    int idx = -1;
+static inline int get_first_larger(int size, int* data) {
     for (int i = 0; i < size - 1; i++) {
-        if (data[i + 1] > data[i]) {
-            idx = i + 1;
-            break;
-        }
+        if (data[i + 1] > data[i]) return (i + 1);
     }
 
-    return idx;
+    return -1;
 }
 
-static int get_last_smaller(int size, int* data) {
-    int idx = -1;
+static inline int get_last_smaller(int size, int* data) {
     for (int i = size - 1; i > 1; i--) {
-        if (data[i] < data[i - 1]) {
-            idx = i;
-            break;
-        }
+        if (data[i] < data[i - 1]) return i;
     }
 
-    return idx;
+    return -1;
 }
 
 static inline void swap(int *ptr1, int *ptr2) {
@@ -99,13 +87,13 @@ static inline void swap(int *ptr1, int *ptr2) {
 }
 
 void _free(Matrix matrix) {
-    Line* line = NULL;
     if (matrix.size != 0 && matrix.lines != NULL) {
+        Line* cur_line = matrix.lines;
         for (int i = 0; i < matrix.size; i++) {
-            line = matrix.lines + i;
-            if (line->size != 0 && line->data != NULL) {
-                free(line->data);
+            if (cur_line->size != 0 && cur_line->data != NULL) {
+                free(cur_line->data);
             }
+            cur_line += 1;
         }
         free(matrix.lines);
     }

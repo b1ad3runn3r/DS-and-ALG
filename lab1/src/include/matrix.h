@@ -17,9 +17,9 @@ static int read_int(int *num, int is_idx);
 
 int input(Matrix *matrix);
 
-static int get_first_larger(int size, int *data);
+static inline int get_first_larger(int size, int *data);
 
-static int get_last_smaller(int size, int *data);
+static inline int get_last_smaller(int size, int *data);
 
 static inline void swap(int *ptr1, int *ptr2);
 
