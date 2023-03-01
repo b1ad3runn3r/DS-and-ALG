@@ -1,29 +1,21 @@
 #include "include/queue.h"
+#include "include/input.h"
 #include "include/airport.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, char **argv) {
-    Queue *q = init();
+    char *input = buffered_input();
+    if (!input) return EXIT_FAILURE;
+    size_t amt = 0;
 
-    Client *c1 = calloc(1, sizeof(Client));
-    Client *c2 = calloc(1, sizeof(Client));
+    Queue *res = parse_input(input, &amt);
+    if (!res) return EXIT_FAILURE;
 
-    char *s1 = calloc(3, 1);
-    s1[0] = 'a'; s1[1] = 'b';
-    c1->name = s1;
+    printf("%zu\n", amt);
+    print(res, _print);
 
-    char *s2 = calloc(3, 1);
-    s2[0] = 'b'; s2[1] = 'a';
-    c2->name = s2;
-
-    enqueue(q, c1);
-    print(q, _print);
-
-    enqueue(q, c2);
-    print(q, _print);
-
-    free_queue(q, _free);
-
-    return 0;
+    free_queue(res, _free);
+    free(input);
+    return EXIT_SUCCESS;
 }

@@ -12,7 +12,6 @@ int is_empty(const Queue *q) {
 
 int enqueue(Queue *q, void *data) {
     Node *tmp = calloc(1, sizeof(Node));
-
     if (!tmp) return EXIT_FAILURE;
 
     tmp->data = data;
