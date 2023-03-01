@@ -10,7 +10,7 @@ int is_empty(const Queue *q) {
     return (!q->front);
 }
 
-int enqueue(Queue *q, char *data) {
+int enqueue(Queue *q, void *data) {
     Node *tmp = calloc(1, sizeof(Node));
 
     if (!tmp) return EXIT_FAILURE;
@@ -29,33 +29,36 @@ int enqueue(Queue *q, char *data) {
     return EXIT_SUCCESS;
 }
 
-char *dequeue(Queue *q) {
+void *dequeue(Queue *q) {
     if (is_empty(q)) return NULL;
 
     Node* tmp = q->front;
-    char *ret = tmp->data;
+    void *ret = tmp->data;
     q->front = tmp->next;
+    if (is_empty(q)) q->rear = NULL;
 
     free(tmp);
 
     return ret;
 }
 
-void print(const Queue *q) {
+void print(const Queue *q, void (*_print)(const void *)) {
     if (is_empty(q)) return;
 
     Node *tmp = q->front;
     while (tmp) {
-        printf("%s ", tmp->data);
+        (*_print)(tmp->data);
         tmp = tmp->next;
     }
 
     putchar('\n');
 }
 
-void free_queue(Queue *q) {
+void free_queue(Queue *q, void (*_free)(void *)) {
+    if (!q) return;
+
     while (q->front) {
-        free(dequeue(q));
+        (*_free)(dequeue(q));
     }
 
     free(q);

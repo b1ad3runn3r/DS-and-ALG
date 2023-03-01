@@ -2,7 +2,7 @@
 #define QUEUE_H
 
 typedef struct Node {
-    char *data; //TODO: change to void* in future, currently using char* for testing ease
+    void *data;
     struct Node *next;
 } Node;
 
@@ -15,12 +15,12 @@ Queue *init();
 
 int is_empty(const Queue *q);
 
-int enqueue(Queue *q, char *data);
+int enqueue(Queue *q, void *data);
 
-char *dequeue(Queue *q);
+void *dequeue(Queue *q);
 
-void print(const Queue *q);
+void print(const Queue *q, void (*_print)(const void *));
 
-void free_queue(Queue *q);
+void free_queue(Queue *q, void (*_free)(void *));
 
 #endif //QUEUE_H
