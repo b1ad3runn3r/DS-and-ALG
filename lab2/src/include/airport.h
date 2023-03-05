@@ -12,8 +12,8 @@ typedef struct Client {
 
 Queue *parse_input(char *input, size_t *amt);
 
-void _print(const void *c);
+void print_client(const void *c);
 
-void _free(void *);
+void free_client(void *);
 
 #endif //AIRPORT_H

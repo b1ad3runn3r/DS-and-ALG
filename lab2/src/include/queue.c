@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-Queue *init() {
+Queue *init_queue() {
     return calloc(1, sizeof(Queue));
 }
 
@@ -41,7 +41,7 @@ void *dequeue(Queue *q) {
     return ret;
 }
 
-void print(const Queue *q, void (*_print)(const void *)) {
+void print_queue(const Queue *q, void (*_print)(const void *)) {
     if (is_empty(q)) return;
 
     Node *tmp = q->front;

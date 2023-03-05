@@ -13,9 +13,9 @@ int main(int argc, char **argv) {
     if (!res) return EXIT_FAILURE;
 
     printf("%zu\n", amt);
-    print(res, _print);
+    print_queue(res, print_client);
 
-    free_queue(res, _free);
+    free_queue(res, free_client);
     free(input);
     return EXIT_SUCCESS;
 }

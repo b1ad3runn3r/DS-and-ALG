@@ -19,22 +19,22 @@ Queue *parse_input(char *input, size_t *amt) {
     *amt = strtoul(word, NULL, 10);
 
     if (!(*amt)) {
-        free_queue(res, _free);
+        free_queue(res, free_client);
         return NULL;
     }
 
     while((word = strtok_r(NULL, "\t\n ", &saveptr_i))) {
         client = word;
         if (count(client, '/') != 2) {
-            free_queue(res, _free);
+            free_queue(res, free_client);
             return NULL;
         }
 
         line_tmp = realloc(line, sizeof(Client *) * (++line_size));
         if (!line_tmp) {
-            free_queue(res, _free);
+            free_queue(res, free_client);
             for (size_t i = 0; i < line_size - 1; ++i) {
-                _free(line[i]);
+                free_client(line[i]);
             }
             return NULL;
         }
@@ -50,10 +50,10 @@ Queue *parse_input(char *input, size_t *amt) {
         if (client) ts = strtoul(client, NULL, 10);
 
         if (!id || ta <= 0 || ts <= 0) {
-            free_queue(res, _free);
+            free_queue(res, free_client);
             free(id);
             for (size_t i = 0; i < line_size; ++i) {
-                _free(line[i]);
+                free_client(line[i]);
             }
             free(line);
             return NULL;
@@ -62,10 +62,10 @@ Queue *parse_input(char *input, size_t *amt) {
         current = calloc(1, sizeof(Client));
 
         if (!current) {
-            free_queue(res, _free);
+            free_queue(res, free_client);
             free(id);
             for (size_t i = 0; i < line_size; ++i) {
-                _free(line[i]);
+                free_client(line[i]);
             }
             free(line);
             return NULL;
@@ -90,12 +90,12 @@ Queue *parse_input(char *input, size_t *amt) {
     return res;
 }
 
-void _print(const void *c) {
+void print_client(const void *c) {
     Client *cur = (Client *) c;
     printf("%s %zu %zu\n", cur->id, cur->ta, cur->ts);
 }
 
-void _free(void *c) {
+void free_client(void *c) {
     Client *cur = (Client *)c;
     if (!cur) return;
     free(cur->id);
