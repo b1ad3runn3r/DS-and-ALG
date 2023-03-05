@@ -6,10 +6,6 @@ Queue *init_queue() {
     return calloc(1, sizeof(Queue));
 }
 
-int is_empty(const Queue *q) {
-    return (!q->front);
-}
-
 int enqueue(Queue *q, void *data) {
     Node *tmp = calloc(1, sizeof(Node));
     if (!tmp) return EXIT_FAILURE;
@@ -17,7 +13,7 @@ int enqueue(Queue *q, void *data) {
     tmp->data = data;
     tmp->next = NULL;
 
-    if (is_empty(q)) {
+    if (!first(q)) {
         q->front = tmp;
     } else {
         q->rear->next = tmp;
@@ -29,12 +25,12 @@ int enqueue(Queue *q, void *data) {
 }
 
 void *dequeue(Queue *q) {
-    if (is_empty(q)) return NULL;
+    if (!first(q)) return NULL;
 
     Node* tmp = q->front;
     void *ret = tmp->data;
     q->front = tmp->next;
-    if (is_empty(q)) q->rear = NULL;
+    if (!first(q)) q->rear = NULL;
 
     free(tmp);
 
@@ -42,7 +38,7 @@ void *dequeue(Queue *q) {
 }
 
 void print_queue(const Queue *q, void (*_print)(const void *)) {
-    if (is_empty(q)) return;
+    if (!first(q)) return;
 
     Node *tmp = q->front;
     while (tmp) {
@@ -61,4 +57,9 @@ void free_queue(Queue *q, void (*_free)(void *)) {
     }
 
     free(q);
+}
+
+void *first(const Queue *q) {
+    if (!(q->front)) return NULL;
+    return q->front->data;
 }
