@@ -6,15 +6,26 @@
 int main(int argc, char **argv) {
     char *input = buffered_input();
     if (!input) return EXIT_FAILURE;
-    size_t amt = 0;
+    size_t amt = 0, l_size = 0;
 
-    Queue *res = parse_input(input, &amt);
-    if (!res) return EXIT_FAILURE;
+    Client **line = parse_input(input, &amt, &l_size);
+    if (!line) {
+        free(input);
+        return EXIT_FAILURE;
+    }
 
-    printf("%zu\n", amt);
-    print_queue(res, print_client);
+    Airport *airport = init_airport(amt);
+    if (!airport) {
+        free(input);
+        return EXIT_FAILURE;
+    }
 
-    free_queue(res, free_client);
+    print_airport(airport);
+    for (size_t i = 0; i < l_size; ++i) {
+        free_client(line[i]);
+    }
+    free(line);
+    free_airport(airport);
     free(input);
     return EXIT_SUCCESS;
 }
