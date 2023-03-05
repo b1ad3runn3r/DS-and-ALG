@@ -12,7 +12,7 @@ Queue *parse_input(char *input, size_t *amt) {
     Client *current = NULL, **line = NULL, **line_tmp = NULL; // line stands for queue
     size_t line_size = 0;
 
-    Queue *res = init();
+    Queue *res = init_queue();
     if (!res) return NULL;
 
     word = strtok_r(input, " ", &saveptr_i);
@@ -75,8 +75,6 @@ Queue *parse_input(char *input, size_t *amt) {
         current->ta = ta;
         current->ts = ts;
 
-
-
         line[line_size - 1] = current;
 
         id = NULL; ta = 0; ts = 0;
@@ -90,9 +88,49 @@ Queue *parse_input(char *input, size_t *amt) {
     return res;
 }
 
+Airport *init_airport(size_t size) {
+    Airport *airport = calloc(1, sizeof(Airport));
+    if (!airport) return NULL;
+
+    airport->size = size;
+    airport->receptions = calloc(size, sizeof(Reception));
+    if (!airport->receptions) {
+        free_airport(airport);
+        return NULL;
+    }
+
+    Reception *ptr = airport->receptions;
+    while (ptr < ptr + size) {
+        ptr->queue = init_queue();
+        if (!ptr) {
+            free_airport(airport);
+            return NULL;
+        }
+        ++ptr;
+    }
+
+    return airport;
+}
+
+void print_airport(Airport *airport) {
+    return ; //TODO: implement later
+}
+
+void free_airport(Airport *airport) {
+    if (airport) {
+        if (airport->receptions) {
+            for (size_t i = 0; i < airport->size; ++i) {
+                free_queue((airport->receptions + i)->queue, free_client);
+            }
+            free(airport->receptions);
+        }
+        free(airport);
+    }
+}
+
 void print_client(const void *c) {
     Client *cur = (Client *) c;
-    printf("%s %zu %zu\n", cur->id, cur->ta, cur->ts);
+    printf("%s %zu %zu", cur->id, cur->ta, cur->ts);
 }
 
 void free_client(void *c) {
