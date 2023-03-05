@@ -1,5 +1,4 @@
 #include "include/queue.h"
-#include "include/input.h"
 #include "include/airport.h"
 #include <stdio.h>
 #include <stdlib.h>

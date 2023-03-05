@@ -19,6 +19,12 @@ typedef struct Airport {
     size_t size;
 } Airport;
 
+#define BUFFER 255
+
+size_t count(const char *str, char search);
+
+char *buffered_input();
+
 Queue *parse_input(char *input, size_t *amt);
 
 Airport *init_airport(size_t size);
