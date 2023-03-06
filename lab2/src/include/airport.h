@@ -27,7 +27,7 @@ int compare(const void *p1, const void *p2);
 
 char *buffered_input();
 
-Client **parse_input(char *input, size_t *amt, size_t *l_size);
+Queue *parse_input(char *input, size_t *amt);
 
 Airport *init_airport(size_t size);
 
@@ -38,5 +38,7 @@ void free_airport(Airport *airport);
 void print_client(const void *c);
 
 void free_client(void *);
+
+void random_choice(Airport *airport, Queue *crowd);
 
 #endif //AIRPORT_H
