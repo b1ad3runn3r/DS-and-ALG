@@ -165,8 +165,9 @@ void print_airport(const Airport *airport) {
     for (size_t i = 0; i < airport->size; i++) {
         printf("Rec. %zu: ", i + 1);
         print_queue((airport->receptions + i)->queue, print_client);
+        putchar('\n');
     }
-    printf("\n");
+    putchar('\n');
 }
 
 void free_airport(Airport *airport) {

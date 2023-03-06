@@ -43,8 +43,6 @@ void print_queue(const Queue *q, void (*_print)(const void *)) {
     for (size_t i = q->front; i != q->rear; i = (i + 1) % Q_MAX) {
         (*_print)(q->data[i]);
     }
-
-    putchar('\n');
 }
 
 void free_queue(Queue *q, void (*_free)(void *)) {
@@ -110,8 +108,6 @@ void print_queue(const Queue *q, void (*_print)(const void *)) {
         (*_print)(tmp->data);
         tmp = tmp->next;
     }
-
-    putchar('\n');
 }
 
 void free_queue(Queue *q, void (*_free)(void *)) {
