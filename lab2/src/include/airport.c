@@ -59,7 +59,10 @@ Queue *parse_input(char *input, size_t *amt) {
     word = strtok_r(input, " ", &saveptr_i);
     *amt = strtoul(word, NULL, 10);
 
-    if (!(*amt)) return NULL;
+    if (!(*amt)) {
+        free_queue(res, free_client);
+        return NULL;
+    }
 
     while((word = strtok_r(NULL, "\t\n ", &saveptr_i))) {
         client = word;
