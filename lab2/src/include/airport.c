@@ -47,6 +47,7 @@ int compare(const void *p1, const void *p2) {
 }
 
 Queue *parse_input(char *input, size_t *amt) {
+    if (!strlen(input)) return NULL;
     char *saveptr_i = NULL, *saveptr_c = NULL, *word = NULL, *client = NULL;
     char *id = NULL; size_t ta = 0, ts = 0;
 
@@ -57,6 +58,10 @@ Queue *parse_input(char *input, size_t *amt) {
     if (!res) return NULL;
 
     word = strtok_r(input, " ", &saveptr_i);
+    if (!word) { //fuzzer error, didn't think about it
+        free_queue(res, free_client);
+        return NULL;
+    }
     *amt = strtoul(word, NULL, 10);
 
     if (!(*amt)) {
@@ -195,9 +200,9 @@ void free_client(void *c) {
 }
 
 void random_choice(Airport *airport, Queue *crowd) {
-    size_t cur_time = 1, q_idx = 0;
-    int rec_idx = 0, changed = 0, l_state = 1;
-    Client *cur = first(crowd), *tmp = NULL;
+    size_t cur_time = 1;
+    int rec_idx = 0, changed = 0;
+    Client *cur = first(crowd);
     if (!cur) return;
 
     Queue *tmp_queue = NULL;
@@ -233,7 +238,6 @@ void random_choice(Airport *airport, Queue *crowd) {
         }
 
         changed = 0;
-        q_idx = 0;
         ++cur_time;
     }
 }
