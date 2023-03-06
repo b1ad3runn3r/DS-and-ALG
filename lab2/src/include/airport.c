@@ -166,7 +166,7 @@ void print_airport(const Airport *airport) {
         printf("Rec. %zu: ", i + 1);
         print_queue((airport->receptions + i)->queue, print_client);
     }
-    putchar('\n');
+    printf("\n");
 }
 
 void free_airport(Airport *airport) {
@@ -194,21 +194,36 @@ void free_client(void *c) {
 }
 
 void random_choice(Airport *airport, Queue *crowd) {
-    size_t cur_time = 1;
-    int rec_idx = 0, changed = 0;
-    Client *cur = first(crowd);
+    size_t cur_time = 1, q_idx = 0;
+    int rec_idx = 0, changed = 0, l_state = 1;
+    Client *cur = first(crowd), *tmp = NULL;
     if (!cur) return;
 
     Queue *tmp_queue = NULL;
     Client *tmp_client = NULL;
-    while (cur) {
-        while(cur->ta == cur_time) {
-            if (!first(crowd)) break;
-            changed = 1;
-            rec_idx = rand() % airport->size;
-            enqueue((airport->receptions + rec_idx)->queue, dequeue(crowd));
-            cur = first(crowd);
-            if (!cur) break;
+    while (cur_time < 900) {
+        if (cur) {
+            while (cur->ta == cur_time) {
+                if (!first(crowd)) break;
+                changed = 1;
+                rec_idx = rand() % airport->size;
+                enqueue((airport->receptions + rec_idx)->queue, dequeue(crowd));
+                cur = first(crowd);
+                if (!cur) break;
+            }
+        }
+
+        for (size_t i = 0; i < airport->size; ++i) {
+            tmp_queue = (airport->receptions + i)->queue;
+            tmp_client = first(tmp_queue);
+            if (!tmp_client) continue;
+
+            if (cur_time == tmp_client->ta + tmp_client->ts) {
+                free_client(dequeue(tmp_queue));
+                tmp_client = first(tmp_queue);
+                if (tmp_client) tmp_client->ta = cur_time;
+                changed = 1;
+            }
         }
 
         if (changed) {
@@ -217,6 +232,7 @@ void random_choice(Airport *airport, Queue *crowd) {
         }
 
         changed = 0;
+        q_idx = 0;
         ++cur_time;
     }
 }
