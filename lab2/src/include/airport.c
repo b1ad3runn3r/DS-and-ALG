@@ -125,7 +125,10 @@ Queue *parse_input(char *input, size_t *amt) {
     qsort(line, line_size, sizeof(Client *), compare);
 
     for (size_t i = 0; i < line_size; ++i) {
-        enqueue(res, line[i]);
+        if (enqueue(res, line[i])) {
+            printf("Queue overflow detected. Maximum allowed is %d.\n", Q_MAX);
+            free_client(line[i]);
+        }
     }
 
     free(line);
@@ -133,6 +136,10 @@ Queue *parse_input(char *input, size_t *amt) {
 }
 
 Airport *init_airport(size_t size) {
+    if (size > Q_MAX) {
+        printf("Queue overflow detected. Maximum allowed is %d.\n", Q_MAX);
+        size = Q_MAX;
+    }
     Airport *airport = calloc(1, sizeof(Airport));
     if (!airport) return NULL;
 
@@ -173,7 +180,6 @@ void free_airport(Airport *airport) {
 
 void print_client(const void *c) {
     Client *cur = (Client *) c;
-    //printf("%s %zu %zu ", cur->id, cur->ta, cur->ts);
     printf("%s ", cur->id);
 }
 

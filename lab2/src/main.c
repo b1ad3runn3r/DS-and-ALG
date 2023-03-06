@@ -7,14 +7,14 @@ int main(int argc, char **argv) {
     srand(time(NULL));
     char *input = buffered_input();
     if (!input) {
-        printf("Wrong input!\n");
+        printf("Input not allocated!\n");
         return EXIT_FAILURE;
     }
     size_t amt = 0;
 
     Queue *queue = parse_input(input, &amt);
     if (!queue) {
-        printf("Queue not allocated!\n");
+        printf("Wrong input or memory allocation error!\n");
         free(input);
         return EXIT_FAILURE;
     }
