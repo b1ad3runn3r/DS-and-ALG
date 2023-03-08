@@ -10,16 +10,16 @@ int main(int argc, char **argv) {
         printf("Input not allocated!\n");
         return EXIT_FAILURE;
     }
-    size_t amt = 0;
+    size_t amount = 0;
 
-    Queue *queue = parse_input(input, &amt);
+    Queue *queue = parse_input(input, &amount);
     if (!queue) {
         printf("Wrong input or memory allocation error!\n");
         free(input);
         return EXIT_FAILURE;
     }
 
-    Airport *airport = init_airport(amt);
+    Airport *airport = init_airport(amount);
     if (!airport) {
         printf("Airport not allocated\n");
         free(input);

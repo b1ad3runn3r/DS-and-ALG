@@ -1,6 +1,7 @@
 #include "queue.h"
 #include <stdlib.h>
 #include <string.h>
+
 #if defined(Q_VECTOR)
 
 Queue *init_queue() {
@@ -28,7 +29,9 @@ int enqueue(Queue *q, void *data) {
 }
 
 void *dequeue(Queue *q) {
-    if (q->front == q->rear && q->len == Q_MAX) return NULL;
+    if (q->front == q->rear && q->len == Q_MAX) {
+        return NULL;
+    }
 
     void *res = NULL;
     res = q->data[q->front];
@@ -39,7 +42,10 @@ void *dequeue(Queue *q) {
 }
 
 void print_queue(const Queue *q, void (*_print)(const void *)) {
-    if (!first(q)) return;
+    if (!first(q)) {
+        return;
+    }
+
     for (size_t i = q->front; i != q->rear; i = (i + 1) % Q_MAX) {
         (*_print)(q->data[i]);
     }
@@ -58,7 +64,9 @@ void free_queue(Queue *q, void (*_free)(void *)) {
 }
 
 void *first(const Queue *q) {
-    if (!q || !(q->len)) return NULL;
+    if (!q || !(q->len)) {
+        return NULL;
+    }
     return q->data[q->front];
 }
 
@@ -71,7 +79,9 @@ Queue *init_queue() {
 
 int enqueue(Queue *q, void *data) {
     Node *tmp = calloc(1, sizeof(Node));
-    if (!tmp) return EXIT_FAILURE;
+    if (!tmp) {
+        return EXIT_FAILURE;
+    }
 
     tmp->data = data;
     tmp->next = NULL;
@@ -88,12 +98,17 @@ int enqueue(Queue *q, void *data) {
 }
 
 void *dequeue(Queue *q) {
-    if (!first(q)) return NULL;
+    if (!first(q)) {
+        return NULL;
+    }
 
-    Node* tmp = q->front;
+    Node *tmp = q->front;
     void *ret = tmp->data;
     q->front = tmp->next;
-    if (!first(q)) q->rear = NULL;
+
+    if (!first(q)) {
+        q->rear = NULL;
+    }
 
     free(tmp);
 
@@ -101,7 +116,9 @@ void *dequeue(Queue *q) {
 }
 
 void print_queue(const Queue *q, void (*_print)(const void *)) {
-    if (!first(q)) return;
+    if (!first(q)) {
+        return;
+    }
 
     Node *tmp = q->front;
     while (tmp) {
@@ -111,7 +128,9 @@ void print_queue(const Queue *q, void (*_print)(const void *)) {
 }
 
 void free_queue(Queue *q, void (*_free)(void *)) {
-    if (!q) return;
+    if (!q) {
+        return;
+    }
 
     while (q->front) {
         (*_free)(dequeue(q));
@@ -121,7 +140,9 @@ void free_queue(Queue *q, void (*_free)(void *)) {
 }
 
 void *first(const Queue *q) {
-    if (!(q->front)) return NULL;
+    if (!(q->front)) {
+        return NULL;
+    }
     return q->front->data;
 }
 

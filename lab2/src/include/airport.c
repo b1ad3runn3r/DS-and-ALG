@@ -8,7 +8,9 @@ static inline size_t count(const char *str, char search) {
     size_t cnt = 0;
     const size_t len = strlen(str);
     for (size_t i = 0; i < len; i++) {
-        if (str[i] == search) ++cnt;
+        if (str[i] == search) {
+            ++cnt;
+        }
     }
 
     return cnt;
@@ -19,11 +21,13 @@ char *buffered_input() {
     size_t res_size = 1; // it's for \0
 
     char *res = calloc(BUFFER, sizeof(char));
-    if (!res) return NULL;
+    if (!res) {
+        return NULL;
+    }
 
-    while(fgets(buffer, BUFFER, stdin)) {
+    while (fgets(buffer, BUFFER, stdin)) {
         res_size += strlen(buffer);
-        char *tmp = (char *)realloc(res, res_size * sizeof(char));
+        char *tmp = realloc(res, res_size * sizeof(char));
         if (!tmp) {
             free(res);
             return NULL;
@@ -38,43 +42,53 @@ char *buffered_input() {
 }
 
 static inline int compare(const void *p1, const void *p2) {
-    size_t t1 = (*((Client **)p1))->ta;
-    size_t t2 = (*((Client **)p2))->ta;
+    size_t t1 = (*((Client **) p1))->ta;
+    size_t t2 = (*((Client **) p2))->ta;
 
-    if (t1 < t2) return -1;
-    else if (t1 > t2) return 1;
-    else return 0;
+    if (t1 < t2) {
+        return -1;
+    } else if (t1 > t2) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
-Queue *parse_input(char *input, size_t *amt) {
+Queue *parse_input(char *input, size_t *amount) {
     if (!strlen(input)) return NULL;
     char *saveptr_i = NULL, *saveptr_c = NULL, *word = NULL, *client = NULL;
-    char *id = NULL; size_t ta = 0, ts = 0;
+
+    char *id = NULL;
+    size_t ta = 0, ts = 0;
 
     Client *current = NULL, **line = NULL, **line_tmp = NULL; // line stands for queue
     size_t line_size = 0;
 
     Queue *res = init_queue();
-    if (!res) return NULL;
+    if (!res) {
+        return NULL;
+    }
 
     word = strtok_r(input, " ", &saveptr_i);
     if (!word) { //fuzzer error, didn't think about it
         free_queue(res, free_client);
         return NULL;
     }
-    *amt = strtoul(word, NULL, 10);
+    *amount = strtoul(word, NULL, 10);
 
-    if (!(*amt)) {
+    if (!(*amount)) {
         free_queue(res, free_client);
         return NULL;
     }
 
-    while((word = strtok_r(NULL, "\t\n ", &saveptr_i))) {
+    while ((word = strtok_r(NULL, "\t\n ", &saveptr_i))) {
         client = word;
         if (count(client, '/') != 2) {
+
             for (size_t i = 0; i < line_size; ++i) {
                 free_client(line[i]);
             }
+
             free(line);
             free_queue(res, free_client);
             return NULL;
@@ -83,9 +97,11 @@ Queue *parse_input(char *input, size_t *amt) {
         ++line_size;
         line_tmp = realloc(line, sizeof(Client *) * line_size);
         if (!line_tmp) {
+
             for (size_t i = 0; i < line_size - 1; ++i) {
                 free_client(line[i]);
             }
+
             free(line);
             free_queue(res, free_client);
             return NULL;
@@ -93,19 +109,27 @@ Queue *parse_input(char *input, size_t *amt) {
         line = line_tmp;
 
         client = strtok_r(word, "/", &saveptr_c);
-        if (client) id = strdup(client);
+        if (client) {
+            id = strdup(client);
+        }
 
         client = strtok_r(NULL, "/", &saveptr_c);
-        if (client) ta = strtoul(client, NULL, 10);
+        if (client) {
+            ta = strtoul(client, NULL, 10);
+        }
 
         client = strtok_r(NULL, "/", &saveptr_c);
-        if (client) ts = strtoul(client, NULL, 10);
+        if (client) {
+            ts = strtoul(client, NULL, 10);
+        }
 
         if (!id || ta <= 0 || ts <= 0) {
             free(id);
+
             for (size_t i = 0; i < line_size; ++i) {
                 free_client(line[i]);
             }
+
             free(line);
             free_queue(res, free_client);
             return NULL;
@@ -115,9 +139,11 @@ Queue *parse_input(char *input, size_t *amt) {
 
         if (!current) {
             free(id);
+
             for (size_t i = 0; i < line_size; ++i) {
                 free_client(line[i]);
             }
+
             free(line);
             free_queue(res, free_client);
             return NULL;
@@ -128,7 +154,9 @@ Queue *parse_input(char *input, size_t *amt) {
         current->ts = ts;
 
         line[line_size - 1] = current;
-        id = NULL; ta = 0; ts = 0;
+        id = NULL;
+        ta = 0;
+        ts = 0;
     }
     qsort(line, line_size, sizeof(Client *), compare);
 
@@ -149,7 +177,9 @@ Airport *init_airport(size_t size) {
         size = Q_MAX;
     }
     Airport *airport = calloc(1, sizeof(Airport));
-    if (!airport) return NULL;
+    if (!airport) {
+        return NULL;
+    }
 
     airport->size = size;
     airport->receptions = calloc(size, sizeof(Reception));
@@ -166,7 +196,9 @@ Airport *init_airport(size_t size) {
 }
 
 void print_airport(const Airport *airport) {
-    if (!airport || !airport->receptions) return;
+    if (!airport || !airport->receptions) {
+        return;
+    }
     for (size_t i = 0; i < airport->size; i++) {
         printf("Rec. %zu: ", i + 1);
         print_queue((airport->receptions + i)->queue, print_client);
@@ -193,8 +225,10 @@ void print_client(const void *c) {
 }
 
 void free_client(void *c) {
-    Client *cur = (Client *)c;
-    if (!cur) return;
+    if (!c) {
+        return;
+    }
+    Client *cur = (Client *) c;
     free(cur->id);
     free(cur);
 }
@@ -215,6 +249,7 @@ int random_choice(Airport *airport, Queue *crowd) {
     Client *tmp_client = NULL;
     while (!is_empty) {
         is_empty = 1;
+
         if (cur) {
             while (cur->ta == cur_time) {
                 if (!first(crowd)) {
@@ -224,6 +259,7 @@ int random_choice(Airport *airport, Queue *crowd) {
                 rec_idx = rand() % airport->size;
                 enqueue((airport->receptions + rec_idx)->queue, dequeue(crowd));
                 cur = first(crowd);
+
                 if (!cur) {
                     break;
                 }
@@ -233,6 +269,7 @@ int random_choice(Airport *airport, Queue *crowd) {
         for (size_t i = 0; i < airport->size; ++i) {
             tmp_queue = (airport->receptions + i)->queue;
             tmp_client = first(tmp_queue);
+
             if (!tmp_client) {
                 is_empty &= 1;
                 continue;
@@ -242,9 +279,11 @@ int random_choice(Airport *airport, Queue *crowd) {
             if (cur_time == tmp_client->ta + tmp_client->ts) {
                 free_client(dequeue(tmp_queue));
                 tmp_client = first(tmp_queue);
+
                 if (tmp_client) {
                     tmp_client->ta = cur_time;
                 }
+
                 changed = 1;
             }
         }

@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include "queue.h"
 
+#define BUFFER 255
+
 typedef struct Client {
     char *id;
     size_t ta;
@@ -19,15 +21,13 @@ typedef struct Airport {
     size_t size;
 } Airport;
 
-#define BUFFER 255
-
 static inline size_t count(const char *str, char search);
 
 static inline int compare(const void *p1, const void *p2);
 
 char *buffered_input();
 
-Queue *parse_input(char *input, size_t *amt);
+Queue *parse_input(char *input, size_t *amount);
 
 Airport *init_airport(size_t size);
 
