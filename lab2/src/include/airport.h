@@ -21,9 +21,9 @@ typedef struct Airport {
 
 #define BUFFER 255
 
-size_t count(const char *str, char search);
+static inline size_t count(const char *str, char search);
 
-int compare(const void *p1, const void *p2);
+static inline int compare(const void *p1, const void *p2);
 
 char *buffered_input();
 

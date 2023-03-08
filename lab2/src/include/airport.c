@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-size_t count(const char *str, char search) {
+static inline size_t count(const char *str, char search) {
     size_t cnt = 0;
     const size_t len = strlen(str);
     for (size_t i = 0; i < len; i++) {
@@ -37,7 +37,7 @@ char *buffered_input() {
     return res;
 }
 
-int compare(const void *p1, const void *p2) {
+static inline int compare(const void *p1, const void *p2) {
     size_t t1 = (*((Client **)p1))->ta;
     size_t t2 = (*((Client **)p2))->ta;
 
