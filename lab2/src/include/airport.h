@@ -39,6 +39,6 @@ void print_client(const void *c);
 
 void free_client(void *);
 
-void random_choice(Airport *airport, Queue *crowd);
+int random_choice(Airport *airport, Queue *crowd);
 
 #endif //AIRPORT_H

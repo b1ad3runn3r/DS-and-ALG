@@ -27,7 +27,11 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    random_choice(airport, queue);
+    if (random_choice(airport, queue)) {
+        printf("Incorrect airport!\n");
+        return EXIT_FAILURE;
+    }
+
     free_queue(queue, free_client);
     free_airport(airport);
     free(input);

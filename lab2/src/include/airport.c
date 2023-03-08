@@ -199,35 +199,52 @@ void free_client(void *c) {
     free(cur);
 }
 
-void random_choice(Airport *airport, Queue *crowd) {
+int random_choice(Airport *airport, Queue *crowd) {
+    if (!airport) {
+        return EXIT_FAILURE;
+    }
     size_t cur_time = 1;
-    int rec_idx = 0, changed = 0;
+    int rec_idx = 0, changed = 0, is_empty = 0;
+
     Client *cur = first(crowd);
-    if (!cur) return;
+    if (!cur) {
+        return EXIT_FAILURE;
+    }
 
     Queue *tmp_queue = NULL;
     Client *tmp_client = NULL;
-    while (cur_time < 900) {
+    while (!is_empty) {
+        is_empty = 1;
         if (cur) {
             while (cur->ta == cur_time) {
-                if (!first(crowd)) break;
+                if (!first(crowd)) {
+                    break;
+                }
                 changed = 1;
                 rec_idx = rand() % airport->size;
                 enqueue((airport->receptions + rec_idx)->queue, dequeue(crowd));
                 cur = first(crowd);
-                if (!cur) break;
+                if (!cur) {
+                    break;
+                }
             }
         }
 
         for (size_t i = 0; i < airport->size; ++i) {
             tmp_queue = (airport->receptions + i)->queue;
             tmp_client = first(tmp_queue);
-            if (!tmp_client) continue;
+            if (!tmp_client) {
+                is_empty &= 1;
+                continue;
+            }
 
+            is_empty &= 0;
             if (cur_time == tmp_client->ta + tmp_client->ts) {
                 free_client(dequeue(tmp_queue));
                 tmp_client = first(tmp_queue);
-                if (tmp_client) tmp_client->ta = cur_time;
+                if (tmp_client) {
+                    tmp_client->ta = cur_time;
+                }
                 changed = 1;
             }
         }
@@ -240,4 +257,6 @@ void random_choice(Airport *airport, Queue *crowd) {
         changed = 0;
         ++cur_time;
     }
+
+    return EXIT_SUCCESS;
 }
