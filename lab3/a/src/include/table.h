@@ -1,6 +1,6 @@
 #ifndef TABLE_H
 #define TABLE_H
-#define ELEM_FMT "%d\t%s\t%s\t%zu\n"
+#define ELEM_FMT "%d\t%s\t%s\t%d\n"
 
 #include "types.h"
 

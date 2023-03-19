@@ -17,14 +17,15 @@ char *readline(const char* prompt) {
     do {
         scan_res = scanf("%255[^\n]", buf);
         if (scan_res < 0) {
-            if (!result) {
-                return NULL;
+            if (result) {
+                free(result);
             }
+            return NULL;
         }
         else if (scan_res > 0) {
             size_t chunk_len = strlen(buf);
             size_t str_len = len + chunk_len;
-            char *tmp = realloc(result, str_len + 1);
+            char *tmp = realloc(result, sizeof(char) * (str_len + 1));
             if (!tmp) {
                 break;
             }

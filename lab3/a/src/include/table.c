@@ -55,22 +55,6 @@ void print_table(Table *table) {
     }
 }
 
-int garbage_collector(Table *table) {
-    if (!table) {
-        return E_NULLPTR;
-    }
-
-    IndexType idx = 0;
-    for (IndexType i = 0; i < table->csize; i++) {
-        if (table->ks[i].busy) {
-            table->ks[idx++] = table->ks[i];
-        }
-    }
-
-    table->csize = idx;
-    return table->csize == table->msize;
-}
-
 void free_element(KeySpace *element) {
     if (!element || !element->key){
         return ;
@@ -144,7 +128,7 @@ int insert(Table *table, KeySpace *element) {
     
 
     if (table->csize == table->msize) {
-        if (remove_garbage(table)) {
+        if (remove_garbage(table)) { //TODO: fix reinserting to not busy elements
             return E_TABLEOVERFLOW;
         }
     }
