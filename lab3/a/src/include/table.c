@@ -9,6 +9,10 @@ void swap(void *p1, void *p2) {
     p2 = tmp;
 }
 
+int compare_keys(KeyType k1, KeyType k2) {
+    return strcmp(k1, k2);
+}
+
 Table *init_table(IndexType msize) {
     if (msize <= 0) {
         return NULL;
@@ -53,7 +57,7 @@ void print_table(Table *table) {
 
 int garbage_collector(Table *table) {
     if (!table) {
-        return 1;
+        return E_NULLPTR;
     }
 
     IndexType idx = 0;
@@ -91,7 +95,7 @@ void free_table(Table *table) {
 
 int remove_garbage(Table *table) {
     if (!table) {
-        return 1;
+        return E_NULLPTR;
     }
 
     IndexType idx = 0;
@@ -106,18 +110,18 @@ int remove_garbage(Table *table) {
     return table->csize == table->msize; //1 if table is full
 }
 
-int search(Table *table, KeySpace *element) {
+IndexType search(Table *table, KeySpace *element) {
     if (!table || !element) {
         return 1;
     }
 
     for (int i = 0; i < table->msize; i++) {
-        if ((table->ks + i)->busy && !strcmp((table->ks + i)->key, element->key)) {
+        if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, element->key)) {
             return i; // TODO: Make comparator a separate function
         }
     }
 
-    return -1;
+    return E_NOTFOUND;
 }
 
 void remove_element(Table *table, KeySpace *element) {
@@ -128,30 +132,29 @@ void remove_element(Table *table, KeySpace *element) {
     //TODO: make removal recursive
 
     IndexType idx = search(table, element);
-    if (idx != -1) {
+    if (idx != E_NOTFOUND) {
         (table->ks + idx)->busy = 0;
     }
 }
 
 int insert(Table *table, KeySpace *element) {
     if (!table || !element) {
-        return 1;
+        return E_NULLPTR;
     }
     
 
     if (table->csize == table->msize) {
         if (remove_garbage(table)) {
-            return 1;
+            return E_TABLEOVERFLOW;
         }
     }
-    
-    int index = search(table, element); 
-    if (index != -1) {
-        return 1;
+
+    if (search(table, element) != E_NOTFOUND) {
+        return E_DUPLICATE;
     }
 
     table->ks[table->csize] = *element;
     (table->ks + table->csize)->busy = 1;
     ++(table->csize);
-    return 0;
+    return E_OK;
 }
