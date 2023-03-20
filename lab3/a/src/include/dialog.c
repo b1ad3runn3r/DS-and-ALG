@@ -49,7 +49,7 @@ KeySpace *create_element(char* key, char* par, int data) {
 
     *(item->info) = data;
     element->key = key;
-    element->par = par; //TODO: add parent key check
+    element->par = par;
     element->info = item;
 
     return element;
@@ -66,7 +66,7 @@ int d_insert(Table *table) {
         free(key);
         return E_ALLOCERROR;
     }
-    if (strlen(par) == 0) {
+    if (par[0] == '\0') {
         free(par);
         par = NULL;
     }
@@ -85,11 +85,17 @@ int d_insert(Table *table) {
         return E_WRONGINPUT;
     }
 
+    IndexType state = search(table, element, 1);
+    if (state == E_NOTFOUND) {
+        free_element(element);
+        free(element);
+        return E_NOTFOUND;
+    }
+
     if (insert(table, element) == E_DUPLICATE) {
         free_element(element);
     }
     free(element);
-    free(par);
 
     return E_OK;
 }
@@ -118,7 +124,7 @@ int d_search(Table *table) {
     }
     KeySpace *element = create_element(key, NULL, 0);
     if (element) {
-        IndexType found = search(table, element);
+        IndexType found = search(table, element, 0);
         if (found != E_NOTFOUND) {
             printf("Found: %d\n", found);
             print_element(table->ks + found);

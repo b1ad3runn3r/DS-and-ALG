@@ -63,6 +63,7 @@ void free_element(KeySpace *element) {
     free(element->info->info);
     free(element->info);
     free(element->key);
+    free(element->par);
 }
 
 void free_table(Table *table) {
@@ -94,15 +95,27 @@ int remove_garbage(Table *table) {
     return table->csize == table->msize; //1 if table is full
 }
 
-IndexType search(Table *table, KeySpace *element) {
+IndexType search(Table *table, KeySpace *element, int parent) {
     if (!table || !element) {
-        return 1;
+        return E_ALLOCERROR;
+    }
+
+    if (parent && !(element->par)) {
+        return E_NULLPTR;
     }
 
     for (int i = 0; i < table->msize; i++) {
-        if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, element->key)) {
-            return i; // TODO: Make comparator a separate function
+        if (parent) {
+            if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, element->par)) {
+                return i;
+            }
         }
+        else {
+            if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, element->key)) {
+                return i;
+            }
+        }
+
     }
 
     return E_NOTFOUND;
@@ -115,7 +128,7 @@ void remove_element(Table *table, KeySpace *element) {
     
     //TODO: make removal recursive
 
-    IndexType idx = search(table, element);
+    IndexType idx = search(table, element, 0);
     if (idx != E_NOTFOUND) {
         (table->ks + idx)->busy = 0;
     }
@@ -133,7 +146,7 @@ int insert(Table *table, KeySpace *element) {
         }
     }
 
-    if (search(table, element) != E_NOTFOUND) {
+    if (search(table, element, 0) != E_NOTFOUND) {
         return E_DUPLICATE;
     }
 

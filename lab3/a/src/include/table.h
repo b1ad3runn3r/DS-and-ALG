@@ -33,7 +33,7 @@ void free_element(KeySpace *element);
 void free_table(Table *table);
 
 int remove_garbage(Table *table);
-IndexType search(Table *table, KeySpace *element);
+IndexType search(Table *table, KeySpace *element, int parent);
 void remove_element(Table *table, KeySpace *element);
 int insert(Table *table, KeySpace *element);
 

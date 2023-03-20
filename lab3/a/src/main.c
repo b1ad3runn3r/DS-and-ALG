@@ -39,9 +39,11 @@ int main() {
         switch (option) {
             case 0: // Quit
                 break;
+
             case 1: // Insert
                 d_insert(table);
                 break;
+
             case 2: // Remove
                 d_remove(table);
                 break;
@@ -51,7 +53,7 @@ int main() {
                 break;
 
             case 4: // Print table
-                print_table(table);
+                d_print(table);
                 break;
 
             case 5: // Print menu

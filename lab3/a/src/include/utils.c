@@ -17,9 +17,7 @@ char *readline(const char* prompt) {
     do {
         scan_res = scanf("%255[^\n]", buf);
         if (scan_res < 0) {
-            if (result) {
-                free(result);
-            }
+            free(result);
             return NULL;
         }
         else if (scan_res > 0) {
