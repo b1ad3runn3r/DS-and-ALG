@@ -11,17 +11,19 @@ void print_opts(const char *opts[], size_t size) {
     }
 }
 
-int choose_option(int opt_size, int *option) {
-    int opt = 0;
-    int flag = E_WRONGINPUT;
-    while (flag != E_OK || opt < 0 || opt > opt_size - 1) {
-        flag = get_int("Enter option: ", &opt);
-        if (flag == E_ALLOCERROR) {
-            return E_ALLOCERROR;
+int dialog(char *opts[], int opts_size ) {
+    int choice = 0;
+    int status = 0;
+
+    do {
+        status = get_int("Enter option: ", &choice);
+        if (status != E_OK) {
+            printf("Wrong input! Try again.");
+            continue;
         }
-    }
-    *option = opt;
-    return E_OK;
+    } while (choice < 0 || choice >= opts_size);
+
+    return choice;
 }
 
 KeySpace *create_element(char* key, char* par, int data) {
