@@ -94,7 +94,7 @@ int d_insert(Table *table) {
         return E_NOTFOUND;
     }
 
-    if (insert(table, element) == E_DUPLICATE) {
+    if (insert(table, element) != E_OK) {
         free_element(element);
     }
     free(element);

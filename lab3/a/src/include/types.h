@@ -11,11 +11,10 @@ typedef int IndexType;
 
 // Error codes
 #define E_OK 0
-#define E_ALLOCERROR -2
-#define E_NOTFOUND -1
-#define E_TABLEOVERFLOW -3
-#define E_NULLPTR -4
-#define E_DUPLICATE -5
-#define E_WRONGINPUT -6
+#define E_ALLOCERROR -1
+#define E_NOTFOUND -2
+#define E_NULLPTR -3
+#define E_INSERT -4
+#define E_WRONGINPUT -5
 
 #endif // TYPES_H

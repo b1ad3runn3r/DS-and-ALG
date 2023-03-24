@@ -91,6 +91,12 @@ int remove_garbage(Table *table) {
         }
     }
 
+    for (IndexType i = idx; i < table->msize; ++i) {
+        if (!table->ks[i].busy) {
+            free_element(table->ks + i);
+        }
+    }
+
     table->csize = idx;
     return table->csize == table->msize; //1 if table is full
 }
@@ -142,12 +148,12 @@ int insert(Table *table, KeySpace *element) {
 
     if (table->csize == table->msize) {
         if (remove_garbage(table)) { //TODO: fix reinserting to not busy elements
-            return E_TABLEOVERFLOW;
+            return E_INSERT;
         }
     }
 
     if (search(table, element, 0) != E_NOTFOUND) {
-        return E_DUPLICATE;
+        return E_INSERT;
     }
 
     table->ks[table->csize] = *element;
