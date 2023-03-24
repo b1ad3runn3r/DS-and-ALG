@@ -14,7 +14,7 @@ int main() {
             "4. Print table",
     };
 
-    int (*f_opts[])(Table *) = {
+    int (* const f_opts[])(Table *) = {
             NULL,
             d_insert,
             d_remove,
@@ -42,7 +42,7 @@ int main() {
     int choice = 0;
     int f_res = 0;
 
-    while ((choice = dialog(opts, 5))) {
+    while ((choice = dialog(5))) {
         if (f_opts[choice]) {
             f_res = f_opts[choice](table);
             if (f_res != E_OK) {

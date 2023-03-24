@@ -5,9 +5,9 @@
 #include "table.h"
 
 void print_opts(const char *opts[], size_t size);
-int dialog(char **opts, int opts_size);
+int dialog(int opts_size);
 
-KeySpace *create_element(char* key, char* par, int data);
+static KeySpace *create_element(char* key, char* par, int data);
 
 int d_insert(Table *table);
 int d_remove(Table *table);

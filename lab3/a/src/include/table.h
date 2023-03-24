@@ -10,8 +10,8 @@ typedef struct Item {
 
 typedef struct KeySpace {
     BusyType busy;
-    KeyType key;
-    KeyType par;
+    KeyType *key;
+    KeyType *par;
     Item *info;
 } KeySpace;
 
@@ -23,17 +23,17 @@ typedef struct Table {
 
 Table *init_table(IndexType msize);
 
-void swap(void *p1, void *p2);
-int compare_keys(KeyType k1, KeyType k2);
+static inline void swap(void *p1, void *p2);
+static inline int compare_keys(const KeyType *k1, const KeyType *k2);
 
-void print_element(KeySpace *element);
-void print_table(Table *table);
+void print_element(const KeySpace *element);
+void print_table(const Table *table);
 
 void free_element(KeySpace *element);
 void free_table(Table *table);
 
 int remove_garbage(Table *table);
-IndexType search(Table *table, KeySpace *element, int parent);
+IndexType search(const Table *table, const KeySpace *element, int parent);
 void remove_element(Table *table, KeySpace *element);
 int insert(Table *table, KeySpace *element);
 

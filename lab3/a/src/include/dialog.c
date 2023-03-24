@@ -11,7 +11,7 @@ void print_opts(const char *opts[], size_t size) {
     }
 }
 
-int dialog(char *opts[], int opts_size ) {
+int dialog(int opts_size ) {
     int choice = 0;
     int status = 0;
 
@@ -26,7 +26,7 @@ int dialog(char *opts[], int opts_size ) {
     return choice;
 }
 
-KeySpace *create_element(char* key, char* par, int data) {
+static KeySpace *create_element(char* key, char* par, int data) {
     if (!key){
         return NULL;
     }

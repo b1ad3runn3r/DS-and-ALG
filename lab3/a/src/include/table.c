@@ -3,13 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 
-void swap(void *p1, void *p2) {
+static inline void swap(void *p1, void *p2) {
     void *tmp = p1;
     p1 = p2;
     p2 = tmp;
 }
 
-int compare_keys(KeyType k1, KeyType k2) {
+static inline int compare_keys(const KeyType *k1, const KeyType *k2) {
     return strcmp(k1, k2);
 }
 
@@ -34,7 +34,7 @@ Table *init_table(IndexType msize) {
     return table;
 }
 
-void print_element(KeySpace *element) {
+void print_element(const KeySpace *element) {
     if (!element || !element->key) {
         return ;
     }
@@ -48,7 +48,7 @@ void print_element(KeySpace *element) {
         );
 }
 
-void print_table(Table *table) {
+void print_table(const Table *table) {
     printf("Busy\tKey\tPar\tInfo\n");
     for (IndexType i = 0; i < table->msize; i++) {
         print_element(&table->ks[i]);
@@ -85,14 +85,14 @@ int remove_garbage(Table *table) {
 
     IndexType idx = 0;
     for (IndexType i = 0; i < table->msize; i++) {
-        if (table->ks[i].busy) {
+        if ((table->ks + i)->busy) {
             swap(table->ks + idx, table->ks + i);
             ++idx;
         }
     }
 
     for (IndexType i = idx; i < table->msize; ++i) {
-        if (!table->ks[i].busy) {
+        if (!(table->ks + i)->busy) {
             free_element(table->ks + i);
         }
     }
@@ -101,7 +101,7 @@ int remove_garbage(Table *table) {
     return table->csize == table->msize; //1 if table is full
 }
 
-IndexType search(Table *table, KeySpace *element, int parent) {
+IndexType search(const Table *table, const KeySpace *element, int parent) {
     if (!table || !element) {
         return E_ALLOCERROR;
     }
@@ -144,10 +144,9 @@ int insert(Table *table, KeySpace *element) {
     if (!table || !element) {
         return E_NULLPTR;
     }
-    
 
     if (table->csize == table->msize) {
-        if (remove_garbage(table)) { //TODO: fix reinserting to not busy elements
+        if (remove_garbage(table)) { // TODO: fix reinserting to not busy elements
             return E_INSERT;
         }
     }
@@ -156,8 +155,8 @@ int insert(Table *table, KeySpace *element) {
         return E_INSERT;
     }
 
-    table->ks[table->csize] = *element;
+    *(table->ks + table->csize) = *element;
     (table->ks + table->csize)->busy = 1;
-    ++(table->csize);
+    table->csize += 1;
     return E_OK;
 }

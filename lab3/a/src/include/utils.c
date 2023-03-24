@@ -14,6 +14,7 @@ char *readline(const char* prompt) {
     char* result = NULL;
     size_t len = 0;
     int scan_res = 0;
+
     do {
         scan_res = scanf("%255[^\n]", buf);
         if (scan_res < 0) {
