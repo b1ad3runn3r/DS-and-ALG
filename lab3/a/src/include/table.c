@@ -5,8 +5,8 @@
 
 static inline void swap(KeySpace *p1, KeySpace *p2) {
     KeySpace *tmp = p1;
-    *p1 = *p2;
-    *p2 = *tmp;
+    p1 = p2;
+    p2 = tmp;
 }
 
 static inline int compare_keys(const KeyType *k1, const KeyType *k2) {
@@ -25,11 +25,7 @@ Table *init_table(IndexType msize) {
 
     table->msize = msize;
     table->csize = 0;
-    table->ks = calloc(msize, sizeof(KeySpace));
-    if (!table->ks) {
-        free(table);
-        return NULL;
-    }
+    table->ks = NULL;
 
     return table;
 }
@@ -50,8 +46,8 @@ void print_element(const KeySpace *element) {
 
 void print_table(const Table *table) {
     printf("Busy\tKey\tPar\tInfo\n");
-    for (IndexType i = 0; i < table->msize; i++) {
-        print_element(&table->ks[i]);
+    for (IndexType i = 0; i < table->csize; ++i) {
+        print_element(table->ks + i);
     }
 }
 
@@ -71,10 +67,13 @@ void free_table(Table *table) {
         return ;
     }
 
-    for (IndexType i = 0; i < table->csize; i++) {
+    for (IndexType i = 0; i < table->csize; ++i) {
         free_element(table->ks + i);
     }
-    free(table->ks);
+
+    if (table->csize > 0) {
+        free(table->ks);
+    }
     free(table);
 }
 
@@ -83,22 +82,28 @@ int remove_garbage(Table *table) {
         return E_NULLPTR;
     }
 
-    IndexType idx = 0;
-    for (IndexType i = 0; i < table->msize; i++) {
-        if ((table->ks + i)->busy) {
-            swap(table->ks + idx, table->ks + i);
-            ++idx;
-        }
-    }
-
-    for (IndexType i = idx; i < table->msize; ++i) {
-        if (!((table->ks + i)->busy)) {
+    for (IndexType i = 0; i < table->csize; ++i) { // TODO: one element persists
+        if ((table->ks + i)->busy == 0) {
             free_element(table->ks + i);
+            memmove(table->ks + i, table->ks + i + 1, (table->csize - i - 1) * sizeof(KeySpace));
+            --table->csize;
         }
     }
 
-    table->csize = idx;
-    return table->csize == table->msize; //1 if table is full
+    if (table->msize == table->csize) {
+        return 1;
+    }
+    else {
+        KeySpace *tmp_ptr = NULL;
+        tmp_ptr = realloc(table->ks, table->csize * sizeof(KeySpace));
+
+        if (!tmp_ptr) {
+            return 1;
+        }
+
+        table->ks = tmp_ptr;
+        return E_OK;
+    }
 }
 
 IndexType search(const Table *table, const KeySpace *element, int parent) {
@@ -110,7 +115,7 @@ IndexType search(const Table *table, const KeySpace *element, int parent) {
         return E_NULLPTR;
     }
 
-    for (int i = 0; i < table->msize; i++) {
+    for (IndexType i = 0; i < table->csize; ++i) {
         if (parent) {
             if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, element->par)) {
                 return i;
@@ -121,13 +126,12 @@ IndexType search(const Table *table, const KeySpace *element, int parent) {
                 return i;
             }
         }
-
     }
 
     return E_NOTFOUND;
 }
 
-void remove_element(Table *table, KeySpace *element) {
+void remove_element(Table *table, const KeySpace *element) {
     if (!table || !element) {
         return ;
     }
@@ -140,7 +144,7 @@ void remove_element(Table *table, KeySpace *element) {
     }
 }
 
-int insert(Table *table, KeySpace *element) {
+int insert(Table *table, const KeySpace *element) {
     if (!table || !element) {
         return E_NULLPTR;
     }
@@ -152,7 +156,7 @@ int insert(Table *table, KeySpace *element) {
     }
 
     if (table->csize == table->msize) {
-        if (remove_garbage(table)) { // TODO: fix reinserting to not busy elements
+        if (remove_garbage(table) != E_OK) {
             return E_INSERT;
         }
     }
@@ -161,8 +165,17 @@ int insert(Table *table, KeySpace *element) {
         return E_INSERT;
     }
 
+    KeySpace *tmp_ptr = NULL;
+    tmp_ptr = realloc(table->ks, (table->csize + 1) * sizeof(KeySpace));
+
+    if (!tmp_ptr) {
+        return E_ALLOCERROR;
+    }
+
+    table->ks = tmp_ptr;
     *(table->ks + table->csize) = *element;
     (table->ks + table->csize)->busy = 1;
     table->csize += 1;
+
     return E_OK;
 }

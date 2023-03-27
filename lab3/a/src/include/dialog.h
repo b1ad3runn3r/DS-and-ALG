@@ -13,5 +13,6 @@ int d_insert(Table *table);
 int d_remove(Table *table);
 int d_search(Table *table);
 int d_print(Table *table);
+int d_garbage(Table *table);
 
 #endif //DIALOG_H
