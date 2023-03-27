@@ -92,7 +92,7 @@ int remove_garbage(Table *table) {
     }
 
     for (IndexType i = idx; i < table->msize; ++i) {
-        if (!(table->ks + i)->busy) {
+        if (!((table->ks + i)->busy)) {
             free_element(table->ks + i);
         }
     }
