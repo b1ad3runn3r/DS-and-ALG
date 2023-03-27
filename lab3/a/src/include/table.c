@@ -86,14 +86,14 @@ int remove_garbage(Table *table) {
     }
 
     if (table->msize == table->csize) {
-        return 1;
+        return E_OVERFLOW;
     }
     else {
         KeySpace *tmp_ptr = NULL;
         tmp_ptr = realloc(table->ks, table->csize * sizeof(KeySpace));
 
         if (!tmp_ptr) {
-            return 1;
+            return E_ALLOC;
         }
 
         table->ks = tmp_ptr;
@@ -162,7 +162,9 @@ int insert(Table *table, const KeySpace *element) {
 
     if (table->csize == table->msize) {
         if (remove_garbage(table) != E_OK) {
-            return E_INSERT;
+            if (table->csize > 0) {
+                return E_OVERFLOW;
+            }
         }
     }
 
@@ -171,7 +173,12 @@ int insert(Table *table, const KeySpace *element) {
     }
 
     KeySpace *tmp_ptr = NULL;
-    tmp_ptr = realloc(table->ks, (table->csize + 1) * sizeof(KeySpace));
+    if (table->csize == 0) {
+        tmp_ptr = calloc(1, sizeof(KeySpace));
+    }
+    else {
+        tmp_ptr = realloc(table->ks, (table->csize + 1) * sizeof(KeySpace));
+    }
 
     if (!tmp_ptr) {
         return E_ALLOC;

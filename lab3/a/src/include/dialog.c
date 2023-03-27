@@ -159,6 +159,9 @@ void parse_result(int result) {
         case E_INSERT:
             printf ("Insert error!\n");
             break;
+        case E_OVERFLOW:
+            printf ("Overflow!\n");
+            break;
         case E_NULLPTR:
             printf ("Null pointer!\n");
             break;
