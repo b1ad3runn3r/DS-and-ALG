@@ -5,14 +5,13 @@
 #include "include/dialog.h"
 
 int main() {
-    int n_opts = 6;
+    int n_opts = 5;
     const char *opts[] = {
             "0. Quit",
             "1. Insert",
             "2. Remove",
             "3. Search",
             "4. Print table",
-            "5. Remove garbage"
     };
 
     int (* const f_opts[])(Table *) = {
@@ -21,7 +20,6 @@ int main() {
             d_remove,
             d_search,
             d_print,
-            d_garbage
     };
 
     IndexType msize = 0;
@@ -45,12 +43,9 @@ int main() {
     int f_res = 0;
 
     while ((choice = dialog(n_opts))) {
-        // TODO: error reporting
         if (f_opts[choice]) {
             f_res = f_opts[choice](table);
-            if (f_res != E_OK) {
-                printf("Wrong input! Try again\n");
-            }
+            parse_result(f_res);
         }
         else {
             break;

@@ -54,7 +54,7 @@ int get_int(const char *prompt, int *res) {
     }
 
     int buf = 0;
-    if (!sscanf(line, "%d", &buf)) {
+    if (sscanf(line, "%d", &buf) <= 0) {
         free(line);
         return E_WRONGINPUT;
     }

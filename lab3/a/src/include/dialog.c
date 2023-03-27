@@ -11,17 +11,16 @@ void print_opts(const char *opts[], size_t size) {
     }
 }
 
-int dialog(int opts_size ) {
+int dialog(int opts_size) {
     int choice = 0;
     int status = 0;
 
     do {
         status = get_int("Enter option: ", &choice);
         if (status != E_OK) {
-            printf("Wrong input! Try again.");
-            continue;
+            printf("Wrong input! Try again.\n");
         }
-    } while (choice < 0 || choice >= opts_size);
+    } while (choice < 0 || choice >= opts_size || status != E_OK);
 
     return choice;
 }
@@ -87,9 +86,11 @@ int d_insert(Table *table) {
         return E_WRONGINPUT;
     }
 
-    if (insert(table, element) != E_OK) {
+    int status = 0;
+    if ((status = insert(table, element)) != E_OK) {
         free_element(element);
     }
+    parse_result(status);
     free(element);
 
     return E_OK;
@@ -102,9 +103,13 @@ int d_remove(Table *table) {
     }
 
     KeySpace *element = create_element(key, NULL, 0);
+    int status = E_ALLOC;
+
     if (element) {
-        remove_element(table, element);
+        status = remove_element(table, element);
     }
+
+    parse_result(status);
 
     free_element(element);
     free(element);
@@ -124,6 +129,9 @@ int d_search(Table *table) {
             printf("Found: %d\n", found);
             print_element(table->ks + found);
         }
+        else {
+            parse_result(E_NOTFOUND);
+        }
     }
     free_element(element);
     free(element);
@@ -135,8 +143,28 @@ int d_print(Table *table) {
     return E_OK;
 }
 
-int d_garbage(Table *table) {
-    remove_garbage(table);
-    return E_OK;
+void parse_result(int result) {
+    switch (result) {
+        case E_OK:
+            break;
+        case E_ALLOC:
+            printf ("Memory allocation error!\n");
+            break;
+        case E_WRONGINPUT:
+            printf ("Wrong input!\n");
+            break;
+        case E_NOTFOUND:
+            printf ("Not found!\n");
+            break;
+        case E_INSERT:
+            printf ("Insert error!\n");
+            break;
+        case E_NULLPTR:
+            printf ("Null pointer!\n");
+            break;
+        default:
+            printf ("Unknown error!\n");
+            break;
+    }
 }
 
