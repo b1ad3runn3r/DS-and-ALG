@@ -76,11 +76,12 @@ int remove_garbage(Table *table) {
         return E_NULLPTR;
     }
 
-    for (IndexType i = 0; i < table->csize; ++i) { // TODO: one element persists
+    for (IndexType i = 0; i < table->csize; ++i) {
         if ((table->ks + i)->busy == 0) {
             free_element(table->ks + i);
             memmove(table->ks + i, table->ks + i + 1, (table->csize - i - 1) * sizeof(KeySpace));
             --table->csize;
+            --i;
         }
     }
 
@@ -130,8 +131,8 @@ int remove_element(Table *table, const KeySpace *element) {
         return E_NULLPTR;
     }
 
-    int idx = 0;
-    if ((idx = search(table, element, 0)) == E_NOTFOUND) {
+    int idx = search(table, element, 0);
+    if (idx == E_NOTFOUND) {
         return E_NOTFOUND;
     }
     KeySpace *cur_elem = table->ks + idx;

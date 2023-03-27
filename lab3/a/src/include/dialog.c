@@ -86,8 +86,8 @@ int d_insert(Table *table) {
         return E_WRONGINPUT;
     }
 
-    int status = 0;
-    if ((status = insert(table, element)) != E_OK) {
+    int status = insert(table, element);
+    if (status != E_OK) {
         free_element(element);
     }
     parse_result(status);
