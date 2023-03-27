@@ -87,13 +87,6 @@ int d_insert(Table *table) {
         return E_WRONGINPUT;
     }
 
-    IndexType state = search(table, element, 1);
-    if (state == E_NOTFOUND) {
-        free_element(element);
-        free(element);
-        return E_NOTFOUND;
-    }
-
     if (insert(table, element) != E_OK) {
         free_element(element);
     }

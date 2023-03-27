@@ -3,10 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
-static inline void swap(void *p1, void *p2) {
-    void *tmp = p1;
-    p1 = p2;
-    p2 = tmp;
+static inline void swap(KeySpace *p1, KeySpace *p2) {
+    KeySpace *tmp = p1;
+    *p1 = *p2;
+    *p2 = *tmp;
 }
 
 static inline int compare_keys(const KeyType *k1, const KeyType *k2) {
@@ -143,6 +143,12 @@ void remove_element(Table *table, KeySpace *element) {
 int insert(Table *table, KeySpace *element) {
     if (!table || !element) {
         return E_NULLPTR;
+    }
+
+    if (element->par) {
+        if (search(table, element, 1) == E_NOTFOUND) {
+            return E_INSERT;
+        }
     }
 
     if (table->csize == table->msize) {

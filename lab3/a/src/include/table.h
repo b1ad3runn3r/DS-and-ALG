@@ -23,7 +23,7 @@ typedef struct Table {
 
 Table *init_table(IndexType msize);
 
-static inline void swap(void *p1, void *p2);
+static inline void swap(KeySpace *p1, KeySpace *p2);
 static inline int compare_keys(const KeyType *k1, const KeyType *k2);
 
 void print_element(const KeySpace *element);
