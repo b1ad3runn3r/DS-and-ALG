@@ -5,13 +5,13 @@
 
 // Types
 typedef int BusyType;
-typedef char KeyType; // Make this not char * to prevent qualifier errors
+typedef char KeyType;
 typedef int InfoType; // TODO: make info type size_t
 typedef int IndexType;
 
 // Error codes
 #define E_OK            0
-#define E_ALLOCERROR    (-1)
+#define E_ALLOC    (-1)
 #define E_NOTFOUND      (-2)
 #define E_NULLPTR       (-3)
 #define E_INSERT        (-4)

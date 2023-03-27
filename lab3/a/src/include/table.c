@@ -3,12 +3,6 @@
 #include <stdio.h>
 #include <string.h>
 
-static inline void swap(KeySpace *p1, KeySpace *p2) {
-    KeySpace *tmp = p1;
-    p1 = p2;
-    p2 = tmp;
-}
-
 static inline int compare_keys(const KeyType *k1, const KeyType *k2) {
     return strcmp(k1, k2);
 }
@@ -108,7 +102,7 @@ int remove_garbage(Table *table) {
 
 IndexType search(const Table *table, const KeySpace *element, int parent) {
     if (!table || !element) {
-        return E_ALLOCERROR;
+        return E_ALLOC;
     }
 
     if (parent && !(element->par)) {
@@ -131,17 +125,27 @@ IndexType search(const Table *table, const KeySpace *element, int parent) {
     return E_NOTFOUND;
 }
 
-void remove_element(Table *table, const KeySpace *element) {
+int remove_element(Table *table, const KeySpace *element) {
     if (!table || !element) {
-        return ;
+        return E_NULLPTR;
     }
-    
-    //TODO: make removal recursive
 
-    IndexType idx = search(table, element, 0);
-    if (idx != E_NOTFOUND) {
-        (table->ks + idx)->busy = 0;
+    int idx = 0;
+    if ((idx = search(table, element, 0)) == E_NOTFOUND) {
+        return E_NOTFOUND;
     }
+    KeySpace *cur_elem = table->ks + idx;
+    cur_elem->busy = 0;
+
+    for (IndexType i = 0; i < table->csize; ++i) {
+        if ((table->ks + i)->par) {
+            if (!compare_keys(cur_elem->key, (table->ks + i)->par)) {
+                remove_element(table, table->ks + i);
+            }
+        }
+    }
+
+    return E_OK;
 }
 
 int insert(Table *table, const KeySpace *element) {
@@ -169,7 +173,7 @@ int insert(Table *table, const KeySpace *element) {
     tmp_ptr = realloc(table->ks, (table->csize + 1) * sizeof(KeySpace));
 
     if (!tmp_ptr) {
-        return E_ALLOCERROR;
+        return E_ALLOC;
     }
 
     table->ks = tmp_ptr;

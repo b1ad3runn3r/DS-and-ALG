@@ -34,7 +34,7 @@ void free_table(Table *table);
 
 int remove_garbage(Table *table);
 IndexType search(const Table *table, const KeySpace *element, int parent);
-void remove_element(Table *table, const KeySpace *element);
+int remove_element(Table *table, const KeySpace *element);
 int insert(Table *table, const KeySpace *element);
 
 #endif // TABLE_H

@@ -50,7 +50,7 @@ char *readline(const char* prompt) {
 int get_int(const char *prompt, int *res) {
     char *line = readline(prompt);
     if (!line) {
-        return E_ALLOCERROR;
+        return E_ALLOC;
     }
 
     int buf = 0;

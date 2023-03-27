@@ -60,13 +60,13 @@ static KeySpace *create_element(char* key, char* par, int data) {
 int d_insert(Table *table) {
     char *key = readline("Enter key: ");
     if (!key) {
-        return E_ALLOCERROR;
+        return E_ALLOC;
     }
 
     char *par = readline("Enter parent key: ");
     if (!par) {
         free(key);
-        return E_ALLOCERROR;
+        return E_ALLOC;
     }
     if (par[0] == '\0') {
         free(par);

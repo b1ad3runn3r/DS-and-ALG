@@ -29,7 +29,7 @@ int main() {
 
     while (flag != E_OK || msize <= 0) {
         flag = get_int("Enter table size: ", &msize);
-        if (flag == E_ALLOCERROR) {
+        if (flag == E_ALLOC) {
             return EXIT_FAILURE;
         }
     }
@@ -45,6 +45,7 @@ int main() {
     int f_res = 0;
 
     while ((choice = dialog(n_opts))) {
+        // TODO: error reporting
         if (f_opts[choice]) {
             f_res = f_opts[choice](table);
             if (f_res != E_OK) {
