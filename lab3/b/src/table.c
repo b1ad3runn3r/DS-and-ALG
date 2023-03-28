@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include "table.h"
-#include "types.h"
+#include "include/table.h"
+#include "include/types.h"
 
 int load_table(Table *table, const char *filename) {
     if (!table) {

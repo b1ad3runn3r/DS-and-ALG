@@ -7,6 +7,7 @@
 
 typedef struct Item {
     int *info;
+    long offset;
 } Item;
 
 typedef struct KeySpace {
@@ -14,6 +15,10 @@ typedef struct KeySpace {
     char *key;
     char *par;
     Item *info;
+    long key_len;
+    long key_offset;
+    long par_len;
+    long par_offset;
 } KeySpace;
 
 typedef struct Table {
