@@ -143,6 +143,11 @@ int d_print(Table *table) {
     return E_OK;
 }
 
+int d_garbage(Table *table) {
+    remove_garbage(table);
+    return E_OK;
+}
+
 void parse_result(int result) {
     switch (result) {
         case E_OK:
