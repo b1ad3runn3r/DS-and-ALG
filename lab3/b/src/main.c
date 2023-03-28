@@ -4,8 +4,13 @@
 #include "include/utils.h"
 #include "include/dialog.h"
 
-int main() {
-    int n_opts = 6;
+int main(int argc, const char **argv) {
+    if (argc != 2) {
+        printf("Usage: %s <file>\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+
+    const int n_opts = 6;
     const char *opts[] = {
             "0. Quit",
             "1. Insert",
@@ -24,20 +29,32 @@ int main() {
             d_garbage
     };
 
-    IndexType msize = 0;
-    int flag = E_WRONGINPUT;
-
-    while (flag != E_OK || msize <= 0) {
-        flag = get_int("Enter table size: ", &msize);
-        if (flag == E_ALLOC) {
-            return EXIT_FAILURE;
-        }
-    }
-
-    //clear_screen();
-    Table *table = init_table(msize);
+    Table *table = init_table();
     if (!table) {
         return EXIT_FAILURE;
+    }
+
+    if (load_table(table, argv[1]) != E_OK) {
+        table->fp = fopen(argv[1], "wb+");
+        if (!table->fp) {
+            free_table(table);
+            return EXIT_FAILURE;
+        }
+
+        int flag = E_WRONGINPUT;
+        int msize = 0;
+
+        while (flag != E_OK || msize <= 0) {
+            flag = get_int("Enter table size: ", &msize);
+            if (flag == E_ALLOC) {
+                free_table(table);
+                return EXIT_FAILURE;
+            }
+        }
+
+        table->msize = msize;
+        table->csize = 0;
+        save_table(table);
     }
 
     print_opts(opts, n_opts);
@@ -48,12 +65,14 @@ int main() {
         if (f_opts[choice]) {
             f_res = f_opts[choice](table);
             parse_result(f_res);
+            save_table(table);
         }
         else {
             break;
         }
     }
 
+    fclose(table->fp);
     free_table(table);
     return 0;
 }

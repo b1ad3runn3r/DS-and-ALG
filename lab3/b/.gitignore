@@ -3,3 +3,4 @@ build*
 vgcore*
 .idea
 .PVS-Studio
+*.bin

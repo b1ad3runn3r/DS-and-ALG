@@ -4,10 +4,6 @@
 #include <stdlib.h>
 
 // Types
-typedef int BusyType;
-typedef char KeyType;
-typedef int InfoType; // TODO: make info type size_t
-typedef int IndexType;
 
 // Error codes
 #define E_OK            0
@@ -17,5 +13,6 @@ typedef int IndexType;
 #define E_INSERT        (-4)
 #define E_WRONGINPUT    (-5)
 #define E_OVERFLOW      (-6)
+#define E_NOFILE        (-7)
 
 #endif // TYPES_H

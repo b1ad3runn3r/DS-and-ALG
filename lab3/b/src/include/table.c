@@ -1,27 +1,52 @@
-#include "table.h"
-#include "types.h"
 #include <stdio.h>
 #include <string.h>
+#include "table.h"
+#include "types.h"
 
-static inline int compare_keys(const KeyType *k1, const KeyType *k2) {
+int load_table(Table *table, const char *filename) {
+    if (!table) {
+        return E_NULLPTR;
+    }
+
+    table->filename = strdup(filename);
+    if (!table->filename) {
+        return E_ALLOC;
+    }
+
+    table->fp = fopen(filename, "rb+");
+    if (!table->fp) {
+        return E_NOFILE;
+    }
+
+    fseek(table->fp, 0, SEEK_SET);
+    fread(&table->msize, sizeof(int), 1, table->fp);
+    // fread(&table->csize, sizeof(int), 1, table->fp);
+
+    return E_OK;
+}
+
+int save_table(Table *table) {
+    if (!table) {
+        return E_NULLPTR;
+    }
+
+    if (!table->fp) {
+        return E_NOFILE;
+    }
+
+    fseek(table->fp, 0, SEEK_SET);
+    fwrite(&table->msize, sizeof(int), 1, table->fp);
+    fwrite(&table->csize, sizeof(int), 1, table->fp);
+
+    return E_OK;
+}
+
+static inline int compare_keys(const char *k1, const char *k2) {
     return strcmp(k1, k2);
 }
 
-Table *init_table(IndexType msize) {
-    if (msize <= 0) {
-        return NULL;
-    }
-
-    Table *table = calloc(1, sizeof(Table));
-    if (!table) {
-        return NULL;
-    }
-
-    table->msize = msize;
-    table->csize = 0;
-    table->ks = NULL;
-
-    return table;
+Table *init_table() {
+    return calloc(1, sizeof(Table));
 }
 
 void print_element(const KeySpace *element) {
@@ -40,7 +65,7 @@ void print_element(const KeySpace *element) {
 
 void print_table(const Table *table) {
     printf("Busy\tKey\tPar\tInfo\n");
-    for (IndexType i = 0; i < table->csize; ++i) {
+    for (int i = 0; i < table->csize; ++i) {
         print_element(table->ks + i);
     }
 }
@@ -61,13 +86,15 @@ void free_table(Table *table) {
         return ;
     }
 
-    for (IndexType i = 0; i < table->csize; ++i) {
+    for (int i = 0; i < table->csize; ++i) {
         free_element(table->ks + i);
     }
 
     if (table->csize > 0) {
         free(table->ks);
     }
+
+    free(table->filename);
     free(table);
 }
 
@@ -76,7 +103,11 @@ int remove_garbage(Table *table) {
         return E_NULLPTR;
     }
 
-    for (IndexType i = 0; i < table->csize; ++i) {
+    if (!table->ks) {
+        return E_NULLPTR;
+    }
+
+    for (int i = 0; i < table->csize; ++i) {
         if ((table->ks + i)->busy == 0) {
             free_element(table->ks + i);
             memmove(table->ks + i, table->ks + i + 1, (table->csize - i - 1) * sizeof(KeySpace));
@@ -101,7 +132,7 @@ int remove_garbage(Table *table) {
     }
 }
 
-IndexType search(const Table *table, const KeySpace *element, int parent) {
+int search(const Table *table, const KeySpace *element, int parent) {
     if (!table || !element) {
         return E_ALLOC;
     }
@@ -110,7 +141,7 @@ IndexType search(const Table *table, const KeySpace *element, int parent) {
         return E_NULLPTR;
     }
 
-    for (IndexType i = 0; i < table->csize; ++i) {
+    for (int i = 0; i < table->csize; ++i) {
         if (parent) {
             if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, element->par)) {
                 return i;
@@ -138,7 +169,7 @@ int remove_element(Table *table, const KeySpace *element) {
     KeySpace *cur_elem = table->ks + idx;
     cur_elem->busy = 0;
 
-    for (IndexType i = 0; i < table->csize; ++i) {
+    for (int i = 0; i < table->csize; ++i) {
         if ((table->ks + i)->par) {
             if (!compare_keys(cur_elem->key, (table->ks + i)->par)) {
                 remove_element(table, table->ks + i);

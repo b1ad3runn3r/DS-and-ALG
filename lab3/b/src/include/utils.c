@@ -63,8 +63,3 @@ int get_int(const char *prompt, int *res) {
     *res = buf;
     return E_OK;
 }
-
-
-
-
-

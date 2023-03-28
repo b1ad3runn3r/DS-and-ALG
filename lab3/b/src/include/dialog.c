@@ -41,7 +41,7 @@ static KeySpace *create_element(char* key, char* par, int data) {
         return NULL;
     }
 
-    item->info = calloc(1, sizeof(InfoType));
+    item->info = calloc(1, sizeof(int));
     if (!item->info) {
         free(item);
         free(element);
@@ -124,8 +124,8 @@ int d_search(Table *table) {
     }
     KeySpace *element = create_element(key, NULL, 0);
     if (element) {
-        IndexType found = search(table, element, 0);
-        if (found != E_NOTFOUND) {
+        int found = search(table, element, 0);
+        if (found >= E_OK) {
             printf("Found: %d\n", found);
             print_element(table->ks + found);
         }
@@ -175,4 +175,3 @@ void parse_result(int result) {
             break;
     }
 }
-
