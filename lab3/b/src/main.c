@@ -10,23 +10,23 @@ int main(int argc, const char **argv) {
         return EXIT_FAILURE;
     }
 
-    const int n_opts = 6;
-    const char *opts[] = {
+    const int n_opts = 5;
+    const char *opts[n_opts] = {
             "0. Quit",
             "1. Insert",
             "2. Remove",
             "3. Search",
             "4. Print table",
-            "5. Remove garbage"
+            //"5. Remove garbage"
     };
 
-    int (* const f_opts[])(Table *) = {
+    int (* const f_opts[n_opts])(Table *) = {
             NULL,
             d_insert,
             d_remove,
             d_search,
             d_print,
-            d_garbage
+            //d_garbage
     };
 
     Table *table = init_table();
@@ -54,6 +54,14 @@ int main(int argc, const char **argv) {
 
         table->msize = msize;
         table->csize = 0;
+        fseek(table->fp, 0, SEEK_END);
+        char *tmp = calloc(table->msize, sizeof(char));
+        if (!tmp) {
+            free_table(table);
+            return EXIT_FAILURE;
+        }
+        fwrite(tmp, sizeof(char), table->msize, table->fp);
+        free(tmp);
         save_table(table);
     }
 

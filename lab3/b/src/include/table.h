@@ -47,4 +47,12 @@ int search(const Table *table, const KeySpace *element, int parent);
 int remove_element(Table *table, const KeySpace *element);
 int insert(Table *table, const KeySpace *element);
 
+int f_print_element(FILE *fp, KeySpace *element, Item *item);
+int f_print_table(Table *table);
+
+int f_remove_garbage(Table *table);
+int f_search(const Table *table, const char *key);
+int f_remove_element(Table *table, const char *key);
+int f_insert(Table *table, const char *key, const char *par, int data);
+
 #endif // TABLE_H
