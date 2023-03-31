@@ -25,37 +25,6 @@ int dialog(int opts_size) {
     return choice;
 }
 
-static KeySpace *create_element(char* key, char* par, int data) {
-    if (!key){
-        return NULL;
-    }
-
-    KeySpace *element = calloc(1, sizeof(KeySpace));
-    if (!element) {
-        return NULL;
-    }
-
-    Item *item = calloc(1, sizeof(Item));
-    if (!item) {
-        free(element);
-        return NULL;
-    }
-
-    item->info = calloc(1, sizeof(int));
-    if (!item->info) {
-        free(item);
-        free(element);
-        return NULL;
-    }
-
-    *(item->info) = data;
-    element->key = key;
-    element->par = par;
-    element->info = item;
-
-    return element;
-}
-
 int d_insert(Table *table) {
     char *key = readline("Enter key: ");
     if (!key) {
@@ -79,20 +48,11 @@ int d_insert(Table *table) {
         return E_WRONGINPUT;
     }
 
-    KeySpace *element = create_element(key, par, data);
-    if (!element) {
-        free(key);
-        free(par);
-        return E_WRONGINPUT;
-    }
-
-    int status = insert(table, element);
-    if (status != E_OK) {
-        free_element(element);
-    }
+    int status = f_insert(table, key, par, data);
     parse_result(status);
-    free(element);
 
+    free(key);
+    free(par);
     return E_OK;
 }
 
@@ -102,17 +62,16 @@ int d_remove(Table *table) {
         return E_WRONGINPUT;
     }
 
-    KeySpace *element = create_element(key, NULL, 0);
-    int status = E_ALLOC;
-
-    if (element) {
-        status = remove_element(table, element);
+    int idx = f_search(table, key);
+    if (idx == E_NOTFOUND) {
+        free(key);
+        return E_WRONGINPUT;
     }
 
-    parse_result(status);
+    int status = f_remove_element(table, key);
 
-    free_element(element);
-    free(element);
+    parse_result(status);
+    free(key);
 
     return E_OK;
 }
@@ -122,29 +81,30 @@ int d_search(Table *table) {
     if (!key) {
         return E_WRONGINPUT;
     }
-    KeySpace *element = create_element(key, NULL, 0);
-    if (element) {
-        int found = search(table, element, 0);
-        if (found >= E_OK) {
-            printf("Found: %d\n", found);
-            print_element(table->ks + found);
-        }
-        else {
-            parse_result(E_NOTFOUND);
-        }
+
+    int found = f_search(table, key);
+    if (found >= E_OK) {
+        printf("Found: %d\n", found);
+
+        KeySpace cur_element;
+        Item cur_item;
+
+        long offset = 2 * sizeof(int) + found * (sizeof(KeySpace) + sizeof(Item));
+        fseek(table->fp, offset, SEEK_SET);
+        fread(&cur_element, sizeof(KeySpace), 1, table->fp);
+        fread(&cur_item, sizeof(Item), 1, table->fp);
+        f_print_element(table->fp, &cur_element, &cur_item);
     }
-    free_element(element);
-    free(element);
+    else {
+        parse_result(E_NOTFOUND);
+    }
+
+    free(key);
     return E_OK;
 }
 
 int d_print(Table *table) {
-    print_table(table);
-    return E_OK;
-}
-
-int d_garbage(Table *table) {
-    remove_garbage(table);
+    f_print_table(table);
     return E_OK;
 }
 
