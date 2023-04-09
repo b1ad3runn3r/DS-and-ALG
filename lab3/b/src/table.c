@@ -173,6 +173,11 @@ int f_remove_garbage(Table *table) {
             fread(&cur_item, sizeof(Item), 1, table->fp);
 
             key = calloc(cur_element.key_len + 1, sizeof(char));
+            if (!key) {
+                fclose(tmp);
+                return E_ALLOC;
+            }
+
             fseek(table->fp, cur_element.key_offset, SEEK_SET);
             fread(key, cur_element.key_len + 1, sizeof(char), table->fp);
 
@@ -183,6 +188,11 @@ int f_remove_garbage(Table *table) {
 
             if (cur_element.par_len > 0) {
                 par = calloc(cur_element.par_len + 1, sizeof(char));
+                if (!par) {
+                    fclose(tmp);
+                    return E_ALLOC;
+                }
+
                 fseek(table->fp, cur_element.par_offset, SEEK_SET);
                 fread(par, cur_element.par_len + 1, sizeof(char), table->fp);
 
@@ -200,7 +210,7 @@ int f_remove_garbage(Table *table) {
             long tmp_offset = 2 * sizeof(int) + cur_size * (sizeof(KeySpace) + sizeof(Item));
             fseek(tmp, tmp_offset, SEEK_SET);
             fwrite(&cur_element, sizeof(KeySpace), 1, tmp);
-            fwrite(&cur_item, sizeof(KeySpace), 1, tmp);
+            fwrite(&cur_item, sizeof(Item), 1, tmp);
             cur_size += 1;
         }
     }
@@ -211,6 +221,9 @@ int f_remove_garbage(Table *table) {
 
     rename(".tmp", table->filename);
     table->fp = fopen(table->filename, "r+b");
+    if (!table->fp) {
+        return E_NOFILE;
+    }
 
     rewind(table->fp);
     fwrite(&table->msize, sizeof(int), 1, table->fp);
