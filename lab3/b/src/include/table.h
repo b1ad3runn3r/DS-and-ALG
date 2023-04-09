@@ -36,6 +36,7 @@ void free_table(Table *table);
 int f_print_element(FILE *fp, const KeySpace *element, const Item *item);
 int f_print_table(Table *table);
 
+int f_remove_garbage(Table *table);
 int f_search(const Table *table, const char *key);
 int f_remove_element(Table *table, const char *key);
 int f_insert(Table *table, const char *key, const char *par, const int data);
