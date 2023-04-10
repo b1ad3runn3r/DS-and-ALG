@@ -38,7 +38,7 @@ int f_print_table(Table *table);
 
 int f_remove_garbage(Table *table);
 int f_search(const Table *table, const char *key);
-int f_remove_element(Table *table, const char *key);
-int f_insert(Table *table, const char *key, const char *par, const int data);
+int f_remove_element(Table *table, char *key, int idx);
+int f_insert(Table *table, const char *key, const char *par, int data);
 
 #endif // TABLE_H

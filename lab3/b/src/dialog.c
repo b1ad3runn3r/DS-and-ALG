@@ -68,7 +68,7 @@ int d_remove(Table *table) {
         return E_WRONGINPUT;
     }
 
-    int status = f_remove_element(table, key);
+    int status = f_remove_element(table, key, idx);
 
     parse_result(status);
     free(key);

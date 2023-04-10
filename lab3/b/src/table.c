@@ -179,7 +179,7 @@ int f_remove_garbage(Table *table) {
             }
 
             fseek(table->fp, cur_element.key_offset, SEEK_SET);
-            fread(key, cur_element.key_len + 1, sizeof(char), table->fp);
+            fread(key, sizeof(char), cur_element.key_len + 1, table->fp);
 
             fseek(tmp, 0, SEEK_END);
             cur_element.key_offset = ftell(tmp);
@@ -194,7 +194,7 @@ int f_remove_garbage(Table *table) {
                 }
 
                 fseek(table->fp, cur_element.par_offset, SEEK_SET);
-                fread(par, cur_element.par_len + 1, sizeof(char), table->fp);
+                fread(par, sizeof(char),cur_element.par_len + 1, table->fp);
 
                 cur_element.par_offset = ftell(tmp);
                 fwrite(par, sizeof(char), cur_element.par_len + 1, tmp);
@@ -266,18 +266,13 @@ int f_search(const Table *table, const char *key) {
     return E_NOTFOUND;
 }
 
-int f_remove_element(Table *table, const char *key) {
+int f_remove_element(Table *table, char *key, int idx) {
     if (!table) {
         return E_NULLPTR;
     }
 
     if (!table->fp) {
         return E_NOFILE;
-    }
-
-    int idx = f_search(table, key);
-    if (idx == E_NOTFOUND) {
-        return E_NOTFOUND;
     }
 
     KeySpace cur_element;
@@ -291,21 +286,31 @@ int f_remove_element(Table *table, const char *key) {
     fwrite(&cur_element, sizeof(KeySpace), 1, table->fp);
 
     for (int i = 0; i < table->csize; ++i) {
+        if (i == idx) {
+            continue;
+        }
         KeySpace loop_element;
+
         long loop_offset = 2 * sizeof(int) + i * (sizeof(KeySpace) + sizeof(Item));
         fseek(table->fp, loop_offset, SEEK_SET);
         fread(&loop_element, sizeof(KeySpace), 1, table->fp);
+
+        if (loop_element.busy == 0) {
+            continue;
+        }
 
         if (loop_element.par_len > 0) {
             char *par = calloc(loop_element.par_len + 1, sizeof(char));
             if (!par) {
                 return E_ALLOC;
             }
+
             fseek(table->fp, loop_element.par_offset, SEEK_SET);
             fread(par, sizeof(char), loop_element.par_len + 1, table->fp);
             if (!compare_keys(par, key)) {
-                f_remove_element(table, par);
+                f_remove_element(table, par, i);
             }
+
             free(par);
         }
     }
@@ -313,7 +318,7 @@ int f_remove_element(Table *table, const char *key) {
     return E_OK;
 }
 
-int f_insert(Table *table, const char *key, const char *par, const int data) {
+int f_insert(Table *table, const char *key, const char *par, int data) {
     if (!table) {
         return E_NULLPTR;
     }
