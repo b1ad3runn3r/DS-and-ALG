@@ -1,6 +1,6 @@
 #ifndef TABLE_H
 #define TABLE_H
-#define ELEM_FMT "%d\t%zu\t%zu\t%zu\n"
+#define ELEM_FMT "%d\t%zu\t%zu\n"
 
 #include "types.h"
 
@@ -11,7 +11,6 @@ typedef struct Item {
 typedef struct KeySpace {
     BusyType busy;
     KeyType key;
-    KeyType par;
     Item *info;
 } KeySpace;
 
@@ -32,7 +31,7 @@ void free_element(KeySpace *element);
 void free_table(Table *table);
 
 int remove_garbage(Table *table);
-IndexType search(const Table *table, const KeySpace *element, int parent);
+IndexType search(const Table *table, const KeySpace *element);
 int remove_element(Table *table, const KeySpace *element);
 int insert(Table *table, const KeySpace *element);
 

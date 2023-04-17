@@ -25,7 +25,7 @@ int dialog(int opts_size) {
     return choice;
 }
 
-static KeySpace *create_element(KeyType key, KeyType par, InfoType data) {
+static KeySpace *create_element(KeyType key, InfoType data) {
     if (!key){
         return NULL;
     }
@@ -50,7 +50,6 @@ static KeySpace *create_element(KeyType key, KeyType par, InfoType data) {
 
     *(item->info) = data;
     element->key = key;
-    element->par = par;
     element->info = item;
 
     return element;
@@ -62,15 +61,12 @@ int d_insert(Table *table) {
         return E_WRONGINPUT;
     }
 
-    KeyType par = NO_PARENT;
-    get_size_t("Enter parent key: ", &par);
-
     InfoType data = 0;
     if (get_size_t("Enter data: ", &data) != E_OK) {
         return E_WRONGINPUT;
     }
 
-    KeySpace *element = create_element(key, par, data);
+    KeySpace *element = create_element(key, data);
     if (!element) {
         return E_WRONGINPUT;
     }
@@ -92,7 +88,7 @@ int d_remove(Table *table) {
         return E_WRONGINPUT;
     }
 
-    KeySpace *element = create_element(key, NO_PARENT, 0);
+    KeySpace *element = create_element(key, 0);
     int status = E_ALLOC;
 
     if (element) {
@@ -113,9 +109,9 @@ int d_search(Table *table) {
         return E_WRONGINPUT;
     }
 
-    KeySpace *element = create_element(key, NO_PARENT, 0);
+    KeySpace *element = create_element(key, 0);
     if (element) {
-        IndexType found = search(table, element, 0);
+        IndexType found = search(table, element);
         if (found != E_NOTFOUND) {
             printf("Found: %d\n", found);
             print_element(table->ks + found);

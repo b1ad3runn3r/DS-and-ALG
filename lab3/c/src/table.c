@@ -30,16 +30,15 @@ void print_element(const KeySpace *element) {
     }
 
     printf( 
-            ELEM_FMT, 
+            ELEM_FMT,
             element->busy, 
-            element->key, 
-            element->par, 
+            element->key,
             *(element->info->info)
         );
 }
 
 void print_table(const Table *table) {
-    printf("Busy\tKey\tPar\tInfo\n");
+    printf("Busy\tKey\tInfo\n");
     for (IndexType i = 0; i < table->csize; ++i) {
         print_element(table->ks + i);
     }
@@ -99,25 +98,14 @@ int remove_garbage(Table *table) {
     }
 }
 
-IndexType search(const Table *table, const KeySpace *element, int parent) {
+IndexType search(const Table *table, const KeySpace *element) {
     if (!table || !element) {
         return E_ALLOC;
     }
 
-    if (parent && element->par == NO_PARENT) {
-        return E_NULLPTR;
-    }
-
     for (IndexType i = 0; i < table->csize; ++i) {
-        if (parent) {
-            if ((table->ks + i)->busy && compare_keys((table->ks + i)->key, element->par)) {
-                return i;
-            }
-        }
-        else {
-            if ((table->ks + i)->busy && compare_keys((table->ks + i)->key, element->key)) {
-                return i;
-            }
+        if ((table->ks + i)->busy && compare_keys((table->ks + i)->key, element->key)) {
+            return i;
         }
     }
 
@@ -129,20 +117,13 @@ int remove_element(Table *table, const KeySpace *element) {
         return E_NULLPTR;
     }
 
-    int idx = search(table, element, 0);
+    int idx = search(table, element);
     if (idx == E_NOTFOUND) {
         return E_NOTFOUND;
     }
+
     KeySpace *cur_elem = table->ks + idx;
     cur_elem->busy = 0;
-
-    for (IndexType i = 0; i < table->csize; ++i) {
-        if ((table->ks + i)->par) {
-            if (compare_keys(cur_elem->key, (table->ks + i)->par)) {
-                remove_element(table, table->ks + i);
-            }
-        }
-    }
 
     return E_OK;
 }
@@ -150,12 +131,6 @@ int remove_element(Table *table, const KeySpace *element) {
 int insert(Table *table, const KeySpace *element) {
     if (!table || !element) {
         return E_NULLPTR;
-    }
-
-    if (element->par != NO_PARENT) {
-        if (search(table, element, 1) == E_NOTFOUND) {
-            return E_INSERT;
-        }
     }
 
     if (table->csize == table->msize) {
@@ -166,7 +141,7 @@ int insert(Table *table, const KeySpace *element) {
         }
     }
 
-    if (search(table, element, 0) != E_NOTFOUND) {
+    if (search(table, element) != E_NOTFOUND) {
         return E_INSERT;
     }
 

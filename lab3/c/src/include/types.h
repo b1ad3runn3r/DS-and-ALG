@@ -18,6 +18,4 @@ typedef int IndexType;
 #define E_WRONGINPUT    (-5)
 #define E_OVERFLOW      (-6)
 
-#define NO_PARENT       (0)
-
 #endif // TYPES_H

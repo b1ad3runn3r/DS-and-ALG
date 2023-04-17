@@ -7,7 +7,7 @@
 void print_opts(const char *opts[], size_t size);
 int dialog(int opts_size);
 
-static KeySpace *create_element(KeyType key, KeyType par, InfoType data);
+static KeySpace *create_element(KeyType key, InfoType data);
 
 int d_insert(Table *table);
 int d_remove(Table *table);
