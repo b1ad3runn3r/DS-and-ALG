@@ -2,6 +2,24 @@
 #include "include/types.h"
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
+
+static inline int hash1(const Table *table, KeyType key) {
+    int hash = INT_MAX;
+    for (int i = 0; i < sizeof(key); ++i) {
+        hash = 37 * hash + ((char *)&key)[i];
+    }
+
+    return abs(hash) % table->msize;
+}
+
+static inline int hash2(const Table *table, KeyType key) {
+    return key % (table->msize - 1) + 1;
+}
+
+static inline int hash(const Table *table, KeyType key, int i) {
+    return (hash1(table, key) + i * hash2(table, key)) % table->msize;
+}
 
 static inline int compare_keys(const KeySpace *k1, const KeySpace *k2, int release) {
     if (release) {
@@ -22,9 +40,9 @@ Table *init_table(IndexType msize) {
         return NULL;
     }
 
+
     table->msize = msize;
-    table->csize = 0;
-    table->ks = NULL;
+    table->ks = calloc(table->msize, sizeof(KeySpace));
 
     return table;
 }
@@ -45,13 +63,17 @@ void print_element(const KeySpace *element) {
 
 void print_table(const Table *table) {
     printf("Busy\tKey\tRelease\tInfo\n");
-    for (IndexType i = 0; i < table->csize; ++i) {
+    for (IndexType i = 0; i < table->msize; ++i) {
         print_element(table->ks + i);
     }
 }
 
 void free_element(KeySpace *element) {
-    if (!element || !element->key){
+    if (!element){
+        return ;
+    }
+
+    if (!element->info) {
         return ;
     }
         
@@ -64,55 +86,24 @@ void free_table(Table *table) {
         return ;
     }
 
-    for (IndexType i = 0; i < table->csize; ++i) {
+    for (IndexType i = 0; i < table->msize; ++i) {
         free_element(table->ks + i);
     }
 
-    if (table->csize > 0) {
-        free(table->ks);
-    }
+    free(table->ks);
     free(table);
 }
 
-int remove_garbage(Table *table) {
-    if (!table) {
-        return E_NULLPTR;
-    }
-
-    for (IndexType i = 0; i < table->csize; ++i) {
-        if ((table->ks + i)->busy == 0) {
-            free_element(table->ks + i);
-            memmove(table->ks + i, table->ks + i + 1, (table->csize - i - 1) * sizeof(KeySpace));
-            --table->csize;
-            --i;
-        }
-    }
-
-    if (table->msize == table->csize) {
-        return E_OVERFLOW;
-    }
-    else {
-        KeySpace *tmp_ptr = NULL;
-        tmp_ptr = realloc(table->ks, table->csize * sizeof(KeySpace));
-
-        if (!tmp_ptr) {
-            return E_ALLOC;
-        }
-
-        table->ks = tmp_ptr;
-        return E_OK;
-    }
-}
-
-IndexType search(const Table *table, const KeySpace *element, int release, IndexType *last_idx) {
+IndexType search(const Table *table, const KeySpace *element, int release, int *last_idx) {
     if (!table || !element) {
         return E_ALLOC;
     }
 
-    for (IndexType i = *last_idx; i < table->csize; ++i) {
-        if ((table->ks + i)->busy && compare_keys((table->ks + i), element, release)) {
+    for (int i = *last_idx; i < table->msize; ++i) {
+        IndexType idx = hash(table, element->key, i);
+        if (table->ks[idx].busy && compare_keys(table->ks + idx, element, release)) {
             *last_idx = i + 1;
-            return i;
+            return idx;
         }
     }
 
@@ -124,10 +115,12 @@ int remove_element(Table *table, const KeySpace *element, int release) {
         return E_NULLPTR;
     }
 
-    IndexType last_idx = 0, idx = search(table, element, release, &last_idx);
-    while (idx != E_NOTFOUND) {
-        (table->ks + idx)->busy = 0;
-        idx = search(table, element, release, &last_idx);
+    for(int i = 0; i < table->msize; ++i) {
+        IndexType idx = hash(table, element->key, i);
+        if (table->ks[idx].busy && compare_keys(table->ks + idx, element, release)) {
+            table->ks[idx].busy = 0;
+            return E_OK;
+        }
     }
 
     return E_OK;
@@ -138,44 +131,26 @@ int insert(Table *table, const KeySpace *element) {
         return E_NULLPTR;
     }
 
-    if (table->csize == table->msize) {
-        if (remove_garbage(table) != E_OK) {
-            if (table->csize > 0) {
-                return E_OVERFLOW;
+    int release = 0;
+    for (int i = 0; i < table->msize; ++i) {
+        IndexType idx = hash(table, element->key, i);
+        if (table->ks[idx].busy && compare_keys(table->ks + idx, element, 0)) {
+            release += 1;
+            continue;
+        }
+
+        if (!table->ks[idx].busy) {
+            table->ks[idx].busy = 1;
+            table->ks[idx].key = element->key;
+            table->ks[idx].release = release;
+            if (table->ks[idx].info) {
+                free(table->ks[idx].info->info);
+                free(table->ks[idx].info);
             }
+            table->ks[idx].info = element->info;
+            return E_OK;
         }
     }
 
-    IndexType last_idx = 0, tmp_idx = -1;
-    IndexType idx = search(table, element, 0, &last_idx);
-    RelType release = 0;
-
-    while (idx >= 0) {
-        tmp_idx = idx;
-        idx = search(table, element, 0, &last_idx);
-    }
-
-    if (table->csize && tmp_idx != E_NOTFOUND) {
-        release = (table->ks + tmp_idx)->release + 1;
-    }
-
-    KeySpace *tmp_ptr = NULL;
-    if (table->csize == 0) {
-        tmp_ptr = calloc(1, sizeof(KeySpace));
-    }
-    else {
-        tmp_ptr = realloc(table->ks, (table->csize + 1) * sizeof(KeySpace));
-    }
-
-    if (!tmp_ptr) {
-        return E_ALLOC;
-    }
-
-    table->ks = tmp_ptr;
-    *(table->ks + table->csize) = *element;
-    (table->ks + table->csize)->busy = 1;
-    (table->ks + table->csize)->release = release;
-    table->csize += 1;
-
-    return E_OK;
+    return E_INSERT;
 }

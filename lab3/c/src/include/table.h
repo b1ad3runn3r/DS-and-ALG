@@ -18,8 +18,11 @@ typedef struct KeySpace {
 typedef struct Table {
     KeySpace *ks;
     IndexType msize;
-    IndexType csize;
 } Table;
+
+static inline int hash1(const Table *table, KeyType key);
+static inline int hash2(const Table *table, KeyType key);
+static inline int hash(const Table *table, KeyType key, int i);
 
 Table *init_table(IndexType msize);
 
@@ -31,8 +34,7 @@ void print_table(const Table *table);
 void free_element(KeySpace *element);
 void free_table(Table *table);
 
-int remove_garbage(Table *table);
-IndexType search(const Table *table, const KeySpace *element, int release, IndexType *last_idx);
+IndexType search(const Table *table, const KeySpace *element, int release, int *last_idx);
 int remove_element(Table *table, const KeySpace *element, int release);
 int insert(Table *table, const KeySpace *element);
 

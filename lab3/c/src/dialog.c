@@ -141,9 +141,9 @@ int d_search(Table *table) {
         IndexType last_idx = 0, idx = 0;
 
         if (release != E_WRONGRELEASE) {
+            printf("Busy\tKey\tRelease\tInfo\n");
             idx = search(table, element, release, &last_idx);
             while (idx >= 0) {
-                printf("Busy\tKey\tRelease\tInfo\n");
                 print_element(table->ks + idx);
                 idx = search(table, element, release, &last_idx);
             }
@@ -160,11 +160,6 @@ int d_search(Table *table) {
 
 int d_print(Table *table) {
     print_table(table);
-    return E_OK;
-}
-
-int d_garbage(Table *table) {
-    remove_garbage(table);
     return E_OK;
 }
 
