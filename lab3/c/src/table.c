@@ -1,5 +1,5 @@
-#include "table.h"
-#include "types.h"
+#include "include/table.h"
+#include "include/types.h"
 #include <stdio.h>
 #include <string.h>
 

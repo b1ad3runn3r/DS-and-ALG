@@ -1,7 +1,7 @@
-#include "dialog.h"
-#include "utils.h"
-#include "types.h"
-#include "table.h"
+#include "include/dialog.h"
+#include "include/utils.h"
+#include "include/types.h"
+#include "include/table.h"
 #include <stdio.h>
 #include <string.h>
 
