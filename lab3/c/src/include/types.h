@@ -6,7 +6,7 @@
 // Types
 typedef int BusyType;
 typedef size_t KeyType;
-typedef size_t RelType;
+typedef int RelType;
 typedef size_t InfoType;
 typedef int IndexType;
 

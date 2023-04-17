@@ -37,7 +37,7 @@ int choose_release(KeySpace *element) {
     int choice = dialog(2);
     if (choice) {
         do {
-            if (get_size_t("Enter release: ", &release) != E_OK) {
+            if (get_int("Enter release: ", &release) != E_OK) {
                 return E_WRONGRELEASE;
             }
         } while (release < 0);
