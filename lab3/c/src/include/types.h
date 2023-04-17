@@ -5,8 +5,8 @@
 
 // Types
 typedef int BusyType;
-typedef char KeyType;
-typedef int InfoType; // TODO: make info type size_t
+typedef size_t KeyType;
+typedef size_t InfoType;
 typedef int IndexType;
 
 // Error codes
@@ -17,5 +17,7 @@ typedef int IndexType;
 #define E_INSERT        (-4)
 #define E_WRONGINPUT    (-5)
 #define E_OVERFLOW      (-6)
+
+#define NO_PARENT       (0)
 
 #endif // TYPES_H

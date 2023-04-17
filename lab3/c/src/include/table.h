@@ -1,6 +1,6 @@
 #ifndef TABLE_H
 #define TABLE_H
-#define ELEM_FMT "%d\t%s\t%s\t%d\n"
+#define ELEM_FMT "%d\t%zu\t%zu\t%zu\n"
 
 #include "types.h"
 
@@ -10,8 +10,8 @@ typedef struct Item {
 
 typedef struct KeySpace {
     BusyType busy;
-    KeyType *key;
-    KeyType *par;
+    KeyType key;
+    KeyType par;
     Item *info;
 } KeySpace;
 
@@ -23,7 +23,7 @@ typedef struct Table {
 
 Table *init_table(IndexType msize);
 
-static inline int compare_keys(const KeyType *k1, const KeyType *k2);
+static inline int compare_keys(KeyType k1, KeyType k2);
 
 void print_element(const KeySpace *element);
 void print_table(const Table *table);

@@ -25,7 +25,7 @@ int dialog(int opts_size) {
     return choice;
 }
 
-static KeySpace *create_element(char* key, char* par, int data) {
+static KeySpace *create_element(KeyType key, KeyType par, InfoType data) {
     if (!key){
         return NULL;
     }
@@ -57,32 +57,21 @@ static KeySpace *create_element(char* key, char* par, int data) {
 }
 
 int d_insert(Table *table) {
-    char *key = readline("Enter key: ");
-    if (!key) {
-        return E_ALLOC;
+    KeyType key = 0;
+    if (get_size_t("Enter key: ", &key) != E_OK) {
+        return E_WRONGINPUT;
     }
 
-    char *par = readline("Enter parent key: ");
-    if (!par) {
-        free(key);
-        return E_ALLOC;
-    }
-    if (par[0] == '\0') {
-        free(par);
-        par = NULL;
-    }
+    KeyType par = NO_PARENT;
+    get_size_t("Enter parent key: ", &par);
 
-    int data = 0;
-    if (get_int("Enter data: ", &data) != E_OK) {
-        free(key);
-        free(par);
+    InfoType data = 0;
+    if (get_size_t("Enter data: ", &data) != E_OK) {
         return E_WRONGINPUT;
     }
 
     KeySpace *element = create_element(key, par, data);
     if (!element) {
-        free(key);
-        free(par);
         return E_WRONGINPUT;
     }
 
@@ -90,6 +79,7 @@ int d_insert(Table *table) {
     if (status != E_OK) {
         free_element(element);
     }
+
     parse_result(status);
     free(element);
 
@@ -97,12 +87,12 @@ int d_insert(Table *table) {
 }
 
 int d_remove(Table *table) {
-    char *key = readline("Enter key: ");
-    if (!key) {
+    KeyType key = 0;
+    if (get_size_t("Enter key: ", &key) != E_OK) {
         return E_WRONGINPUT;
     }
 
-    KeySpace *element = create_element(key, NULL, 0);
+    KeySpace *element = create_element(key, NO_PARENT, 0);
     int status = E_ALLOC;
 
     if (element) {
@@ -118,11 +108,12 @@ int d_remove(Table *table) {
 }
 
 int d_search(Table *table) {
-    char *key = readline("Enter key: ");
-    if (!key) {
+    KeyType key = 0;
+    if (get_size_t("Enter key: ", &key) != E_OK) {
         return E_WRONGINPUT;
     }
-    KeySpace *element = create_element(key, NULL, 0);
+
+    KeySpace *element = create_element(key, NO_PARENT, 0);
     if (element) {
         IndexType found = search(table, element, 0);
         if (found != E_NOTFOUND) {

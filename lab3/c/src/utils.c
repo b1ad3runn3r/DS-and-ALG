@@ -64,7 +64,19 @@ int get_int(const char *prompt, int *res) {
     return E_OK;
 }
 
+int get_size_t(const char *prompt, size_t *res) {
+    char *line = readline(prompt);
+    if (!line) {
+        return E_ALLOC;
+    }
 
+    int buf = 0;
+    if (sscanf(line, "%d", &buf) <= 0) {
+        free(line);
+        return E_WRONGINPUT;
+    }
 
-
-
+    free(line);
+    *res = buf;
+    return E_OK;
+}

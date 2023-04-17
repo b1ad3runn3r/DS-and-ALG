@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
-static inline int compare_keys(const KeyType *k1, const KeyType *k2) {
-    return strcmp(k1, k2);
+static inline int compare_keys(KeyType k1, KeyType k2) {
+    return k1 == k2;
 }
 
 Table *init_table(IndexType msize) {
@@ -52,8 +52,6 @@ void free_element(KeySpace *element) {
         
     free(element->info->info);
     free(element->info);
-    free(element->key);
-    free(element->par);
 }
 
 void free_table(Table *table) {
@@ -106,18 +104,18 @@ IndexType search(const Table *table, const KeySpace *element, int parent) {
         return E_ALLOC;
     }
 
-    if (parent && !(element->par)) {
+    if (parent && element->par == NO_PARENT) {
         return E_NULLPTR;
     }
 
     for (IndexType i = 0; i < table->csize; ++i) {
         if (parent) {
-            if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, element->par)) {
+            if ((table->ks + i)->busy && compare_keys((table->ks + i)->key, element->par)) {
                 return i;
             }
         }
         else {
-            if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, element->key)) {
+            if ((table->ks + i)->busy && compare_keys((table->ks + i)->key, element->key)) {
                 return i;
             }
         }
@@ -140,7 +138,7 @@ int remove_element(Table *table, const KeySpace *element) {
 
     for (IndexType i = 0; i < table->csize; ++i) {
         if ((table->ks + i)->par) {
-            if (!compare_keys(cur_elem->key, (table->ks + i)->par)) {
+            if (compare_keys(cur_elem->key, (table->ks + i)->par)) {
                 remove_element(table, table->ks + i);
             }
         }
@@ -154,7 +152,7 @@ int insert(Table *table, const KeySpace *element) {
         return E_NULLPTR;
     }
 
-    if (element->par) {
+    if (element->par != NO_PARENT) {
         if (search(table, element, 1) == E_NOTFOUND) {
             return E_INSERT;
         }
