@@ -6,6 +6,7 @@
 
 void print_opts(const char *opts[], size_t size);
 int dialog(int opts_size);
+int choose_release(KeySpace *element);
 
 static KeySpace *create_element(KeyType key, InfoType data);
 

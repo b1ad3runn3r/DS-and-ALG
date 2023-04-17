@@ -3,8 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 
-static inline int compare_keys(KeyType k1, KeyType k2) {
-    return k1 == k2;
+static inline int compare_keys(const KeySpace *k1, const KeySpace *k2, int release) {
+    if (release) {
+        return (k1->key == k2->key) && (k1->release == k2->release);
+    }
+    else {
+        return k1->key == k2->key;
+    }
 }
 
 Table *init_table(IndexType msize) {
@@ -31,14 +36,15 @@ void print_element(const KeySpace *element) {
 
     printf( 
             ELEM_FMT,
-            element->busy, 
+            element->busy,
             element->key,
+            element->release,
             *(element->info->info)
         );
 }
 
 void print_table(const Table *table) {
-    printf("Busy\tKey\tInfo\n");
+    printf("Busy\tKey\tRelease\tInfo\n");
     for (IndexType i = 0; i < table->csize; ++i) {
         print_element(table->ks + i);
     }
@@ -98,13 +104,14 @@ int remove_garbage(Table *table) {
     }
 }
 
-IndexType search(const Table *table, const KeySpace *element) {
+IndexType search(const Table *table, const KeySpace *element, int release, IndexType *last_idx) {
     if (!table || !element) {
         return E_ALLOC;
     }
 
-    for (IndexType i = 0; i < table->csize; ++i) {
-        if ((table->ks + i)->busy && compare_keys((table->ks + i)->key, element->key)) {
+    for (IndexType i = *last_idx; i < table->csize; ++i) {
+        if ((table->ks + i)->busy && compare_keys((table->ks + i), element, release)) {
+            *last_idx = i + 1;
             return i;
         }
     }
@@ -112,18 +119,16 @@ IndexType search(const Table *table, const KeySpace *element) {
     return E_NOTFOUND;
 }
 
-int remove_element(Table *table, const KeySpace *element) {
+int remove_element(Table *table, const KeySpace *element, int release) {
     if (!table || !element) {
         return E_NULLPTR;
     }
 
-    int idx = search(table, element);
-    if (idx == E_NOTFOUND) {
-        return E_NOTFOUND;
+    IndexType last_idx = 0, idx = search(table, element, release, &last_idx);
+    while (idx != E_NOTFOUND) {
+        (table->ks + idx)->busy = 0;
+        idx = search(table, element, release, &last_idx);
     }
-
-    KeySpace *cur_elem = table->ks + idx;
-    cur_elem->busy = 0;
 
     return E_OK;
 }
@@ -141,8 +146,17 @@ int insert(Table *table, const KeySpace *element) {
         }
     }
 
-    if (search(table, element) != E_NOTFOUND) {
-        return E_INSERT;
+    IndexType last_idx = 0, tmp_idx = -1;
+    IndexType idx = search(table, element, 0, &last_idx);
+    RelType release = 0;
+
+    while (idx >= 0) {
+        tmp_idx = idx;
+        idx = search(table, element, 0, &last_idx);
+    }
+
+    if (table->csize && tmp_idx != E_NOTFOUND) {
+        release = (table->ks + tmp_idx)->release + 1;
     }
 
     KeySpace *tmp_ptr = NULL;
@@ -160,6 +174,7 @@ int insert(Table *table, const KeySpace *element) {
     table->ks = tmp_ptr;
     *(table->ks + table->csize) = *element;
     (table->ks + table->csize)->busy = 1;
+    (table->ks + table->csize)->release = release;
     table->csize += 1;
 
     return E_OK;

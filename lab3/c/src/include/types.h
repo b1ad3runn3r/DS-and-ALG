@@ -6,6 +6,7 @@
 // Types
 typedef int BusyType;
 typedef size_t KeyType;
+typedef size_t RelType;
 typedef size_t InfoType;
 typedef int IndexType;
 
@@ -17,5 +18,6 @@ typedef int IndexType;
 #define E_INSERT        (-4)
 #define E_WRONGINPUT    (-5)
 #define E_OVERFLOW      (-6)
+#define E_WRONGRELEASE  2
 
 #endif // TYPES_H

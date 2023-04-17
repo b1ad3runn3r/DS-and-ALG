@@ -25,6 +25,28 @@ int dialog(int opts_size) {
     return choice;
 }
 
+int choose_release(KeySpace *element) {
+    const char *opts[2] = {
+        "0. Compare without release",
+        "1. Compare with release"
+    };
+
+    RelType release = 0;
+
+    print_opts(opts, 2);
+    int choice = dialog(2);
+    if (choice) {
+        do {
+            if (get_size_t("Enter release: ", &release) != E_OK) {
+                return E_WRONGRELEASE;
+            }
+        } while (release < 0);
+    }
+
+    element->release = release;
+    return choice;
+}
+
 static KeySpace *create_element(KeyType key, InfoType data) {
     if (!key){
         return NULL;
@@ -89,13 +111,17 @@ int d_remove(Table *table) {
     }
 
     KeySpace *element = create_element(key, 0);
-    int status = E_ALLOC;
 
     if (element) {
-        status = remove_element(table, element);
-    }
+        int release = choose_release(element);
 
-    parse_result(status);
+        if (release != E_WRONGRELEASE) {
+            remove_element(table, element, release);
+        }
+        else {
+            parse_result(E_NOTFOUND);
+        }
+    }
 
     free_element(element);
     free(element);
@@ -111,15 +137,22 @@ int d_search(Table *table) {
 
     KeySpace *element = create_element(key, 0);
     if (element) {
-        IndexType found = search(table, element);
-        if (found != E_NOTFOUND) {
-            printf("Found: %d\n", found);
-            print_element(table->ks + found);
+        int release = choose_release(element);
+        IndexType last_idx = 0, idx = 0;
+
+        if (release != E_WRONGRELEASE) {
+            idx = search(table, element, release, &last_idx);
+            while (idx >= 0) {
+                printf("Busy\tKey\tRelease\tInfo\n");
+                print_element(table->ks + idx);
+                idx = search(table, element, release, &last_idx);
+            }
         }
         else {
             parse_result(E_NOTFOUND);
         }
     }
+
     free_element(element);
     free(element);
     return E_OK;
