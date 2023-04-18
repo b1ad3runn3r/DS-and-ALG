@@ -19,13 +19,16 @@ typedef struct Table {
     FILE *fp;
     char *filename;
     int msize;
-    int csize;
 } Table;
 
 int load_table(Table *, const char *filename);
 int save_table(Table *);
 
 Table *init_table();
+
+static inline int hash1(const Table *table, KeyType key);
+static inline int hash2(const Table *table, KeyType key);
+static inline int hash(const Table *table, KeyType key, int i);
 
 static inline int compare_keys(KeyType k1, KeyType k2, RelType r1, RelType r2, int release);
 

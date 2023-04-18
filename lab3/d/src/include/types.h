@@ -10,8 +10,8 @@ typedef long RelType;
 
 // Error codes
 #define E_OK            0
-#define E_ALLOC         (-1)
-#define E_NOTFOUND      (-2)
+#define E_NOTFOUND      (-1)
+#define E_ALLOC         (-2)
 #define E_NULLPTR       (-3)
 #define E_INSERT        (-4)
 #define E_WRONGINPUT    (-5)

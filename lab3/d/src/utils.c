@@ -1,8 +1,8 @@
-#include "include/utils.h"
-#include "include/types.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "include/utils.h"
+#include "include/types.h"
 
 void clear_screen() {
     printf("\033[;H\033[J");

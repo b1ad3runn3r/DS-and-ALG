@@ -51,7 +51,6 @@ int main(int argc, const char **argv) {
         }
 
         table->msize = msize;
-        table->csize = 0;
 
         save_table(table);
         char *tmp = calloc(table->msize, sizeof(KeySpace) + sizeof(Item));
@@ -59,9 +58,9 @@ int main(int argc, const char **argv) {
             free_table(table);
             return EXIT_FAILURE;
         }
+
         fseek(table->fp, 0, SEEK_END);
         fwrite(tmp, sizeof(KeySpace) + sizeof(Item), table->msize, table->fp);
-        fflush(table->fp);
         free(tmp);
     }
 
