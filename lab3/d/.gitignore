@@ -1,0 +1,6 @@
+build*
+.vscode*
+vgcore*
+.idea
+.PVS-Studio
+*.bin
