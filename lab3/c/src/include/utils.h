@@ -40,10 +40,11 @@ int next_prime(int n) {
     int found = 0;
 
     while (!found) {
-        prime++;
-
         if (is_prime(prime)) {
             found = 1;
+        }
+        else {
+            prime++;
         }
     }
 

@@ -10,8 +10,8 @@ typedef struct Item {
 
 typedef struct KeySpace {
     BusyType busy;
-    KeyType key;
     RelType release;
+    KeyType key;
     Item *info;
 } KeySpace;
 
