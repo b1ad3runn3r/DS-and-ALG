@@ -1,6 +1,6 @@
 #ifndef TABLE_H
 #define TABLE_H
-#define ELEM_FMT "%ld\t%s\t%s\t%d\n"
+#define ELEM_FMT "%ld\t%s\t%d\n"
 
 #include <stdio.h>
 #include "types.h"
@@ -13,8 +13,6 @@ typedef struct KeySpace {
     long busy;
     long key_len;
     long key_offset;
-    long par_len;
-    long par_offset;
 } KeySpace;
 
 typedef struct Table {
@@ -39,6 +37,6 @@ int f_print_table(Table *table);
 int f_remove_garbage(Table *table);
 int f_search(const Table *table, const char *key);
 int f_remove_element(Table *table, char *key, int idx);
-int f_insert(Table *table, const char *key, const char *par, int data);
+int f_insert(Table *table, const char *key, int data);
 
 #endif // TABLE_H

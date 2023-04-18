@@ -31,28 +31,16 @@ int d_insert(Table *table) {
         return E_ALLOC;
     }
 
-    char *par = readline("Enter parent key: ");
-    if (!par) {
-        free(key);
-        return E_ALLOC;
-    }
-    if (par[0] == '\0') {
-        free(par);
-        par = NULL;
-    }
-
     int data = 0;
     if (get_int("Enter data: ", &data) != E_OK) {
         free(key);
-        free(par);
         return E_WRONGINPUT;
     }
 
-    int status = f_insert(table, key, par, data);
+    int status = f_insert(table, key, data);
     parse_result(status);
 
     free(key);
-    free(par);
     return E_OK;
 }
 
