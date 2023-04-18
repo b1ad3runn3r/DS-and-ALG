@@ -26,47 +26,38 @@ int dialog(int opts_size) {
 }
 
 int d_insert(Table *table) {
-    char *key = readline("Enter key: ");
-    if (!key) {
-        return E_ALLOC;
+    KeyType key = 0;
+    if (get_size_t("Enter key: ", &key) != E_OK) {
+        return E_WRONGINPUT;
     }
 
-    int data = 0;
-    if (get_int("Enter data: ", &data) != E_OK) {
-        free(key);
+    InfoType data = 0;
+    if (get_size_t("Enter data: ", &data) != E_OK) {
         return E_WRONGINPUT;
     }
 
     int status = f_insert(table, key, data);
     parse_result(status);
 
-    free(key);
     return E_OK;
 }
 
 int d_remove(Table *table) {
-    char *key = readline("Enter key: ");
-    if (!key) {
+    KeyType key = 0;
+    if (get_size_t("Enter key: ", &key) != E_OK) {
         return E_WRONGINPUT;
     }
 
-    int idx = f_search(table, key);
-    if (idx == E_NOTFOUND) {
-        free(key);
-        return E_WRONGINPUT;
-    }
-
-    int status = f_remove_element(table, key, idx);
+    int status = f_remove_element(table, key);
 
     parse_result(status);
-    free(key);
 
     return E_OK;
 }
 
 int d_search(Table *table) {
-    char *key = readline("Enter key: ");
-    if (!key) {
+    KeyType key = 0;
+    if (get_size_t("Enter key: ", &key) != E_OK) {
         return E_WRONGINPUT;
     }
 
@@ -87,7 +78,6 @@ int d_search(Table *table) {
         parse_result(E_NOTFOUND);
     }
 
-    free(key);
     return E_OK;
 }
 

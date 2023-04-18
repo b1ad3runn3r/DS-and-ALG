@@ -4,6 +4,9 @@
 #include <stdlib.h>
 
 // Types
+typedef size_t InfoType;
+typedef size_t KeyType;
+
 
 // Error codes
 #define E_OK            0

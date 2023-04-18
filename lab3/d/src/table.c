@@ -42,12 +42,8 @@ int save_table(Table *table) {
     return E_OK;
 }
 
-static inline int compare_keys(const char *k1, const char *k2) {
-    if (!k1 || !k2) {
-        return 1;
-    }
-
-    return strcmp(k1, k2);
+static inline int compare_keys(KeyType k1, KeyType k2) {
+    return k1 == k2;
 }
 
 Table *init_table() {
@@ -68,18 +64,14 @@ int f_print_element(FILE *fp, const KeySpace *element, const Item *item) {
         return E_NULLPTR;
     }
 
-    char *key = NULL, *par = NULL;
-    int data;
+    KeyType key;
+    InfoType data;
 
-    key = calloc(element->key_len + 1, sizeof(char));
-    if (!key) {
-        return E_ALLOC;
-    }
     fseek(fp, element->key_offset, SEEK_SET);
-    fread(key, sizeof(char), element->key_len + 1, fp);
+    fread(&key, sizeof(KeyType), 1, fp);
 
     fseek(fp, item->offset, SEEK_SET);
-    fread(&data, sizeof(int), 1, fp);
+    fread(&data, sizeof(InfoType), 1, fp);
 
     printf(
             ELEM_FMT,
@@ -88,8 +80,6 @@ int f_print_element(FILE *fp, const KeySpace *element, const Item *item) {
             data
             );
 
-    free(par);
-    free(key);
     return E_OK;
 }
 
@@ -111,102 +101,14 @@ int f_print_table(Table *table) {
         fseek(table->fp, offset, SEEK_SET);
         fread(&cur_element, sizeof(KeySpace), 1, table->fp);
         fread(&cur_item, sizeof(Item), 1, table->fp);
+
         f_print_element(table->fp, &cur_element, &cur_item);
     }
 
     return E_OK;
 }
 
-int f_remove_garbage(Table *table) {
-    if (!table) {
-        return E_NULLPTR;
-    }
-
-    if (!table->fp) {
-        return E_NOFILE;
-    }
-
-    FILE *tmp = fopen(".tmp", "w+b");
-    if (!tmp) {
-        return E_NOFILE;
-    }
-
-    rewind(tmp);
-    fwrite(&table->msize, sizeof(int), 1, tmp);
-    fwrite(&table->csize, sizeof(int), 1, tmp);
-
-    char *tmp_s = calloc(table->msize, sizeof(KeySpace) + sizeof(Item));
-    if (!tmp_s) {
-        return E_ALLOC;
-    }
-
-    fwrite(tmp_s, sizeof(KeySpace) + sizeof(Item), table->msize, tmp);
-    free(tmp_s);
-
-    char *key = NULL, *par = NULL;
-    int cur_size = 0;
-
-
-    for (int i = 0; i < table->csize; ++i) {
-        KeySpace cur_element;
-        memset(&cur_element, 0, sizeof(KeySpace));
-        Item cur_item;
-        memset(&cur_item, 0, sizeof(Item));
-        int data = 0;
-
-        long offset = 2 * sizeof(int) + i * (sizeof(KeySpace) + sizeof(Item));
-        fseek(table->fp, offset, SEEK_SET);
-        fread(&cur_element, sizeof(KeySpace), 1, table->fp);
-
-        if (cur_element.busy) {
-            fread(&cur_item, sizeof(Item), 1, table->fp);
-
-            key = calloc(cur_element.key_len + 1, sizeof(char));
-            if (!key) {
-                fclose(tmp);
-                return E_ALLOC;
-            }
-
-            fseek(table->fp, cur_element.key_offset, SEEK_SET);
-            fread(key, sizeof(char), cur_element.key_len + 1, table->fp);
-
-            fseek(tmp, 0, SEEK_END);
-            cur_element.key_offset = ftell(tmp);
-            fwrite(key, sizeof(char), cur_element.key_len + 1, tmp);
-            free(key);
-
-            fseek(table->fp, cur_item.offset, SEEK_SET);
-            fread(&data, sizeof(int), 1, table->fp);
-
-            cur_item.offset = ftell(tmp);
-            fwrite(&data, sizeof(int), 1, tmp);
-
-            long tmp_offset = 2 * sizeof(int) + cur_size * (sizeof(KeySpace) + sizeof(Item));
-            fseek(tmp, tmp_offset, SEEK_SET);
-            fwrite(&cur_element, sizeof(KeySpace), 1, tmp);
-            fwrite(&cur_item, sizeof(Item), 1, tmp);
-            cur_size += 1;
-        }
-    }
-    table->csize = cur_size;
-
-    fclose(tmp);
-    fclose(table->fp);
-
-    rename(".tmp", table->filename);
-    table->fp = fopen(table->filename, "r+b");
-    if (!table->fp) {
-        return E_NOFILE;
-    }
-
-    rewind(table->fp);
-    fwrite(&table->msize, sizeof(int), 1, table->fp);
-    fwrite(&table->csize, sizeof(int), 1, table->fp);
-
-    return table->msize == table->csize;
-}
-
-int f_search(const Table *table, const char *key) {
+int f_search(const Table *table, KeyType key) {
     if (!table) {
         return E_NULLPTR;
     }
@@ -216,37 +118,38 @@ int f_search(const Table *table, const char *key) {
     }
 
     KeySpace cur_element;
-    char *cur_key = NULL;
+    KeyType cur_key;
+
     for (int i = 0; i < table->csize; ++i) {
         long offset = 2 * sizeof(int) + i * (sizeof(KeySpace) + sizeof(Item));
         fseek(table->fp, offset, SEEK_SET);
         fread(&cur_element, sizeof(KeySpace), 1, table->fp);
+
         if (cur_element.busy) {
-            cur_key = calloc(cur_element.key_len + 1, sizeof(char));
-            if (!cur_key) {
-                return E_ALLOC;
-            }
             fseek(table->fp, cur_element.key_offset, SEEK_SET);
-            fread(cur_key, sizeof(char), cur_element.key_len + 1, table->fp);
-            if (!compare_keys(cur_key, key)) {
-                free(cur_key);
+            fread(&cur_key, sizeof(KeyType), 1, table->fp);
+
+            if (compare_keys(cur_key, key)) {
                 return i;
             }
-            free(cur_key);
-            cur_key = NULL;
         }
     }
 
     return E_NOTFOUND;
 }
 
-int f_remove_element(Table *table, char *key, int idx) {
+int f_remove_element(Table *table, KeyType key) {
     if (!table) {
         return E_NULLPTR;
     }
 
     if (!table->fp) {
         return E_NOFILE;
+    }
+
+    int idx = f_search(table, key);
+    if (idx == E_NOTFOUND) {
+        return E_WRONGINPUT;
     }
 
     KeySpace cur_element;
@@ -262,7 +165,7 @@ int f_remove_element(Table *table, char *key, int idx) {
     return E_OK;
 }
 
-int f_insert(Table *table, const char *key, int data) {
+int f_insert(Table *table, KeyType key, InfoType data) {
     if (!table) {
         return E_NULLPTR;
     }
@@ -276,9 +179,7 @@ int f_insert(Table *table, const char *key, int data) {
     }
 
     if (table->csize == table->msize) {
-        if (f_remove_garbage(table) != 0) {
-            return E_OVERFLOW;
-        }
+        return E_OVERFLOW;
     }
 
     KeySpace cur_element;
@@ -287,11 +188,10 @@ int f_insert(Table *table, const char *key, int data) {
     fseek(table->fp, 0, SEEK_END);
 
     cur_element.key_offset = ftell(table->fp);
-    cur_element.key_len = (long) strlen(key);
-    fwrite(key, sizeof(char), cur_element.key_len + 1, table->fp);
+    fwrite(&key, sizeof(KeyType), 1, table->fp);
 
     cur_item.offset = ftell(table->fp);
-    fwrite(&data, sizeof(int), 1, table->fp);
+    fwrite(&data, sizeof(InfoType), 1, table->fp);
 
     cur_element.busy = 1;
 
