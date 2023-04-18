@@ -3,7 +3,6 @@
 #include "include/types.h"
 #include "include/table.h"
 #include <stdio.h>
-#include <string.h>
 
 void print_opts(const char *opts[], size_t size) {
     for (int i = 0; i < size; ++i) {
@@ -22,6 +21,28 @@ int dialog(int opts_size) {
         }
     } while (choice < 0 || choice >= opts_size || status != E_OK);
 
+    return choice;
+}
+
+int choose_release(RelType *release) {
+    const char *opts[2] = {
+            "0. Compare without release",
+            "1. Compare with release"
+    };
+
+    print_opts(opts, 2);
+    RelType tmp_release = 0;
+    int choice = dialog(2);
+
+    if (choice) {
+        do {
+            if (get_long("Enter release: ", &tmp_release) != E_OK) {
+                return E_NOTFOUND;
+            }
+        } while (tmp_release < 0);
+    }
+
+    *release = tmp_release;
     return choice;
 }
 
@@ -48,7 +69,13 @@ int d_remove(Table *table) {
         return E_WRONGINPUT;
     }
 
-    int status = f_remove_element(table, key);
+    RelType release = 0;
+    int has_release = choose_release(&release);
+    int status = E_NOTFOUND;
+
+    if (has_release != E_NOTFOUND) {
+        status = f_remove_element(table, key, release, has_release);
+    }
 
     parse_result(status);
 
@@ -61,18 +88,24 @@ int d_search(Table *table) {
         return E_WRONGINPUT;
     }
 
-    int found = f_search(table, key);
-    if (found >= E_OK) {
-        printf("Found: %d\n", found);
+    RelType release = 0;
+    int has_release = choose_release(&release);
+    int last_idx = 0, idx = 0;
 
-        KeySpace cur_element;
-        Item cur_item;
+    KeySpace cur_element;
+    Item cur_item;
 
-        long offset = 2 * sizeof(int) + found * (sizeof(KeySpace) + sizeof(Item));
-        fseek(table->fp, offset, SEEK_SET);
-        fread(&cur_element, sizeof(KeySpace), 1, table->fp);
-        fread(&cur_item, sizeof(Item), 1, table->fp);
-        f_print_element(table->fp, &cur_element, &cur_item);
+    if (has_release != E_NOTFOUND) {
+        idx = f_search(table, key, release, has_release, &last_idx);
+        printf("Busy\tKey\tRelease\tInfo\n");
+        while (idx >= 0) {
+            fseek(table->fp, 2 * sizeof(int) + idx * (sizeof(KeySpace) + sizeof(Item)), SEEK_SET);
+            fread(&cur_element, sizeof(KeySpace), 1, table->fp);
+            fread(&cur_item, sizeof(Item), 1, table->fp);
+
+            f_print_element(table->fp, &cur_element, &cur_item);
+            idx = f_search(table, key, release, has_release, &last_idx);
+        }
     }
     else {
         parse_result(E_NOTFOUND);

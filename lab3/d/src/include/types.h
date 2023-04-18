@@ -6,7 +6,7 @@
 // Types
 typedef size_t InfoType;
 typedef size_t KeyType;
-
+typedef long RelType;
 
 // Error codes
 #define E_OK            0

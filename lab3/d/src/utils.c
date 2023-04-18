@@ -80,3 +80,20 @@ int get_size_t(const char *prompt, size_t *res) {
     *res = buf;
     return E_OK;
 }
+
+int get_long(const char *prompt, long *res) {
+    char *line = readline(prompt);
+    if (!line) {
+        return E_ALLOC;
+    }
+
+    long buf = 0;
+    if (sscanf(line, "%ld", &buf) <= 0) {
+        free(line);
+        return E_WRONGINPUT;
+    }
+
+    free(line);
+    *res = buf;
+    return E_OK;
+}

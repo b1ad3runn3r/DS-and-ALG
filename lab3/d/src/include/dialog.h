@@ -6,6 +6,7 @@
 
 void print_opts(const char *opts[], size_t size);
 int dialog(int opts_size);
+int choose_release(RelType *release);
 
 int d_insert(Table *table);
 int d_remove(Table *table);
