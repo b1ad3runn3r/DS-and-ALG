@@ -84,6 +84,10 @@ int f_print_element(FILE *fp, const KeySpace *element, const Item *item) {
         return E_NULLPTR;
     }
 
+    if (element->key_offset == 0) {
+        return E_NULLPTR;
+    }
+
     KeyType key;
     InfoType data;
 

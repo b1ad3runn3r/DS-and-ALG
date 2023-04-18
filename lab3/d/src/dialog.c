@@ -99,7 +99,7 @@ int d_search(Table *table) {
         idx = f_search(table, key, release, has_release, &last_idx);
         printf("Busy\tKey\tRelease\tInfo\n");
         while (idx >= 0) {
-            fseek(table->fp, 2 * sizeof(int) + idx * (sizeof(KeySpace) + sizeof(Item)), SEEK_SET);
+            fseek(table->fp, sizeof(int) + idx * (sizeof(KeySpace) + sizeof(Item)), SEEK_SET);
             fread(&cur_element, sizeof(KeySpace), 1, table->fp);
             fread(&cur_item, sizeof(Item), 1, table->fp);
 
