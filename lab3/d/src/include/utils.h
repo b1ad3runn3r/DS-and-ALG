@@ -10,4 +10,8 @@ int get_int(const char *prompt, int *res);
 int get_size_t(const char *prompt, size_t *res);
 int get_long(const char *prompt, long *res);
 
+int is_prime(int n);
+
+int next_prime(int n);
+
 #endif //UTILS_H

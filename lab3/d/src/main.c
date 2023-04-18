@@ -50,6 +50,7 @@ int main(int argc, const char **argv) {
             }
         }
 
+        msize = next_prime(msize);
         table->msize = msize;
 
         save_table(table);
