@@ -2,6 +2,7 @@
 #define TREE_H
 
 #include "types.h"
+#include <stdio.h>
 
 typedef struct Tree {
     KeyType key;
@@ -31,5 +32,7 @@ static Tree *find_last_min(Tree *ptr);
 
 int insert(Tree **root, KeyType key, DataType *info);
 int delete(Tree **root, KeyType key);
+
+int load_tree(FILE *fp, Tree **tree);
 
 #endif // TREE_H

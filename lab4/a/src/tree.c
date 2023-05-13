@@ -1,4 +1,4 @@
-#include "tree.h"
+#include "include/tree.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -204,7 +204,7 @@ int insert(Tree **root, KeyType key, DataType *info) {
     }
 
     root_ptr->key = key;
-    root_ptr->info = copy(info);
+    root_ptr->info = info;
     root_ptr->parent = parent;
 
     if (!parent) {
@@ -268,6 +268,51 @@ int delete(Tree **root, KeyType key) {
 
     free_element(to_delete);
     free(to_delete);
+
+    return EXIT_SUCCESS;
+}
+
+int load_tree(FILE *fp, Tree **tree) {
+    if (!fp) {
+        return EXIT_FAILURE;
+    }
+
+    Tree *root_ptr = *tree;
+    if (root_ptr) {
+        free_tree(tree);
+        root_ptr = NULL;
+    }
+
+    size_t cnt = 0;
+    KeyType key = 0;
+    DataType *info = NULL;
+
+    char *line = NULL;
+    size_t len = 0;
+    while (getline(&line, &len, fp) != -1) {
+        if (cnt % 2 == 0) { // Key
+            if (sscanf(line, "%zu", &key) <= 0) {
+                free(line);
+                return EXIT_FAILURE;
+            }
+        }
+        else { // Info
+            info = strdup(line);
+            if (!info) {
+                free(line);
+                return EXIT_FAILURE;
+            }
+
+            if (insert(tree, key, info)) {
+                free(line);
+                return EXIT_FAILURE;
+            }
+        }
+
+        free(line);
+        line = NULL;
+        cnt += 1;
+    }
 
     return EXIT_SUCCESS;
 }
