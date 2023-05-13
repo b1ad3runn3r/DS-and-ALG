@@ -11,10 +11,6 @@ static inline int greater_than(KeyType k1, KeyType k2) {
     return k1 >= k2;
 }
 
-static inline DataType *copy(DataType *info) {
-    return strdup(info);
-}
-
 void print_element(Tree *element) {
     if (!element) {
         return ;
@@ -304,6 +300,7 @@ int load_tree(FILE *fp, Tree **tree) {
             }
 
             if (insert(tree, key, info)) {
+                free(info);
                 free(line);
                 return EXIT_FAILURE;
             }
@@ -314,5 +311,6 @@ int load_tree(FILE *fp, Tree **tree) {
         cnt += 1;
     }
 
+    free(line);
     return EXIT_SUCCESS;
 }

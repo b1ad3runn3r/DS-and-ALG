@@ -14,7 +14,6 @@ typedef struct Tree {
 
 static inline int is_equal(KeyType k1, KeyType k2);
 static inline int greater_than(KeyType k1, KeyType k2);
-static inline DataType *copy(DataType *info);
 
 void print_element(Tree *element);
 void print_tree(Tree *ptr, int level);
