@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
             print_element(minimum[i]);
             putchar('\n');
         }
+        free(minimum);
     }
 
     size_t find_size = 0;

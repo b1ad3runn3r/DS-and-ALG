@@ -92,12 +92,18 @@ void traverse(Tree **root, KeyType key) {
 
 Tree** find(Tree *ptr, KeyType key, size_t *result_size) {
     Tree **result = NULL;
+    Tree **tmp_ptr = NULL;
     size_t size = 0;
 
     while (ptr) {
         if (greater_than(key, ptr->key)) {
             if (is_equal(key, ptr->key)) {
-                result = realloc(result, sizeof(Tree *) * (++size));
+                tmp_ptr = realloc(result, sizeof(Tree *) * (++size));
+                if (!tmp_ptr) {
+                    return NULL;
+                }
+
+                result = tmp_ptr;
                 result[size - 1] = ptr;
             }
             ptr = ptr->right;
@@ -124,12 +130,23 @@ Tree** find_min(Tree *ptr, size_t *result_size) {
     }
 
     KeyType min_key = ptr->key;
-    result = realloc(result, sizeof(Tree *) * (++size));
+
+    Tree **tmp_ptr = realloc(result, sizeof(Tree *) * (++size));
+    if (!tmp_ptr) {
+        return NULL;
+    }
+
+    result = tmp_ptr;
     result[size - 1] = ptr;
 
     while (ptr->right) {
         if (is_equal(min_key, ptr->key)) { // ??????
-            result = realloc(result, sizeof(Tree *) * (++size));
+            tmp_ptr = realloc(result, sizeof(Tree *) * (++size));
+            if (!tmp_ptr) {
+                return NULL;
+            }
+
+            result = tmp_ptr;
             result[size - 1] = ptr;
         }
         ptr = ptr->right;
@@ -182,6 +199,10 @@ int insert(Tree **root, KeyType key, DataType *info) {
     }
 
     root_ptr = calloc(1, sizeof(Tree));
+    if (!root_ptr) {
+        return EXIT_FAILURE;
+    }
+
     root_ptr->key = key;
     root_ptr->info = copy(info);
     root_ptr->parent = parent;
@@ -213,6 +234,10 @@ int delete(Tree **root, KeyType key) {
     }
     else {
         to_delete = find_last_min(cur->right);
+    }
+
+    if (!to_delete) {
+        return EXIT_FAILURE;
     }
 
     if (to_delete->left) {
