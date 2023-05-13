@@ -6,6 +6,7 @@ set(CMAKE_C_FLAGS "-g")
 
 add_library(tree SHARED src/tree.c)
 add_library(utils SHARED src/utils.c)
+
 add_library(dialog SHARED src/dialog.c)
 target_link_libraries(dialog utils)
 

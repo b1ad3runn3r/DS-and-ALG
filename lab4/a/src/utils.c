@@ -79,4 +79,3 @@ int get_size_t(const char *prompt, size_t *res) {
     *res = buf;
     return EXIT_SUCCESS;
 }
-
