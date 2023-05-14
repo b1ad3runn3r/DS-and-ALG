@@ -12,7 +12,8 @@ const char *opts[] = {
         "4. Search",
         "5. Special search",
         "6. Print tree",
-        "7. Load tree"
+        "7. Load tree",
+        "8. Timing"
 };
 
 int (*const f_opts[])(Tree **) = {
@@ -23,10 +24,11 @@ int (*const f_opts[])(Tree **) = {
         d_search,
         d_search_min,
         d_print_tree,
-        d_load_tree
+        d_load_tree,
+        d_timing
 };
 
-int n_opts = 8;
+int n_opts = 9;
 
 int main(int argc, char **argv) {
     Tree *root = NULL;

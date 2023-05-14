@@ -8,7 +8,7 @@ add_library(tree SHARED src/tree.c)
 add_library(utils SHARED src/utils.c)
 
 add_library(dialog SHARED src/dialog.c)
-target_link_libraries(dialog utils)
+target_link_libraries(dialog utils tree)
 
 add_executable(lab4a src/main.c)
 target_link_libraries(lab4a tree dialog)

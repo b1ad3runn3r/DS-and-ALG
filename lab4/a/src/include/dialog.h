@@ -15,5 +15,6 @@ int d_search(Tree **tree);
 int d_search_min(Tree **tree);
 int d_print_tree(Tree **tree);
 int d_load_tree(Tree **tree);
+int d_timing(Tree **tree);
 
 #endif // DIALOG_H
