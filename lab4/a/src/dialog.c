@@ -162,7 +162,7 @@ int d_load_tree(Tree **tree) {
     return EXIT_SUCCESS;
 }
 
-int d_timing(Tree **tree) { // TODO: add timing for insertion and deletion
+int d_timing(Tree **tree) {
     Tree *root = NULL;
     int n = 10;
     size_t key[10000], k, cnt = 1e6, m;

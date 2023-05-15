@@ -136,7 +136,7 @@ Tree** find_min(Tree *ptr, size_t *result_size) {
     result[size - 1] = ptr;
 
     while (ptr->right) {
-        if (is_equal(min_key, ptr->key)) { // ??????
+        if (is_equal(min_key, ptr->key)) {
             tmp_ptr = realloc(result, sizeof(Tree *) * (++size));
             if (!tmp_ptr) {
                 return NULL;
