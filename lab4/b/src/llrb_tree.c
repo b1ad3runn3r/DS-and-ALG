@@ -332,9 +332,18 @@ static void print_element(Node *node) {
         return ;
     }
 
-    for (uint64_t i = 0; i < node->value_size; ++i) {
-        printf("(%s,%lu)", node->key, node->value[i]);
+    size_t key_size = strlen(node->key);
+    if (node->key[key_size - 1] == '\n') {
+        node->key[key_size - 1] = '\0';
     }
+    printf("(%s)", node->key);
+    putchar('[');
+
+    for (uint64_t i = 0; i < node->value_size; ++i) {
+        printf(" %lu ", node->value[i]);
+    }
+
+    putchar(']');
 }
 
 void traverse(Node *node, key_tt *start, key_tt *end) {
