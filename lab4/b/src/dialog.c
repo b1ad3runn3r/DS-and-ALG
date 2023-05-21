@@ -26,14 +26,14 @@ int dialog(int opts_size) {
 }
 
 int d_insert(Node **tree) {
-    char *key = readline("Enter data: -->");
+    char *key = readline("Enter key: --> ");
     if (!key) {
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
 
     uint64_t data = 0;
-    if (get_size_t("Enter key: -->", &data)) {
+    if (get_size_t("Enter data: --> ", &data)) {
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
@@ -47,14 +47,14 @@ int d_insert(Node **tree) {
 }
 
 int d_delete(Node **tree) {
-    char *key = readline("Enter data: -->");
+    char *key = readline("Enter key: --> ");
     if (!key) {
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
 
     uint64_t data = 0;
-    if (get_size_t("Enter key: -->", &data)) {
+    if (get_size_t("Enter data: --> ", &data)) {
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
@@ -94,7 +94,7 @@ int d_search(Node **tree) {
     }
 
     uint64_t position = 0;
-    if (get_size_t("Enter position (index): -->", &position)) {
+    if (get_size_t("Enter position (index): --> ", &position)) {
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
@@ -114,7 +114,7 @@ int d_search(Node **tree) {
 
 int d_search_min(Node **tree) {
     uint64_t position = 0;
-    if (get_size_t("Enter position (index): -->", &position)) {
+    if (get_size_t("Enter position (index): --> ", &position)) {
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
@@ -155,7 +155,7 @@ int d_load_tree(Node **tree) {
         }
     }
 
-    char *path = readline("Enter path to file: -->");
+    char *path = readline("Enter path to file: --> ");
     if (!path) {
         return EXIT_FAILURE;
     }
