@@ -56,14 +56,14 @@ int d_delete(Node **tree) {
         return EXIT_FAILURE;
     }
 
-    uint64_t data = 0;
-    if (get_size_t("Enter data: --> ", &data)) {
+    uint64_t position = 0;
+    if (get_size_t("Enter position: --> ", &position)) {
         free(key);
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
 
-    if (delete(tree, key)) {
+    if (delete(tree, key, position)) {
         free(key);
         return EXIT_FAILURE;
     }

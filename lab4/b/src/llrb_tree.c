@@ -121,7 +121,12 @@ static Node *create_node(key_tt *key, value_t value) {
         return NULL;
     }
 
-    node->key = key;
+    node->key = strdup(key);
+    if (!node->key) {
+        free(node);
+        return NULL;
+    }
+
     node->value = calloc(1, sizeof(value_t));
     if (!node->value) {
         free(node);
@@ -143,7 +148,7 @@ static int create_duplicate(Node *node, value_t value) {
 
     node->value = tmp_ptr;
     node->value[node->value_size] = value;
-    ++node->value_size;
+    ++(node->value_size);
 
     return EXIT_SUCCESS;
 }
@@ -229,6 +234,10 @@ static Node *move_red_right(Node *node) {
 }
 
 static Node *balance(Node *node) {
+    if (!node) {
+        return NULL;
+    }
+
     if (is_red(node->right)) {
         node = rotate_left(node);
     }
@@ -244,79 +253,104 @@ static Node *balance(Node *node) {
     return node;
 }
 
-static Node *__delete_min(Node *node) {
+static void resize_value(Node *node, uint64_t position) {
+    if (position >= node->value_size) {
+        return ;
+    }
+
+    if (position < node->value_size - 1) {
+        memmove(node->value + position, node->value + position + 1, (node->value_size - position - 1) * sizeof(value_t));
+    }
+
+    value_t *tmp_ptr = realloc(node->value, (node->value_size - 1) * sizeof(value_t));
+    if (!tmp_ptr) {
+        return ;
+    }
+
+    node->value = tmp_ptr;
+    --(node->value_size);
+}
+
+static Node *__delete_min(Node *node, uint64_t position) {
     if (!node) {
         return NULL;
     }
 
     if (!node->left) {
-        free_element(node);
-        return EXIT_SUCCESS;
+        if (node->value_size > 1) {
+            resize_value(node, position);
+            return node;
+        }
+        else {
+            free_element(node);
+            return NULL;
+        }
     }
 
     if (!is_red(node->left) && !is_red(node->left->left)) {
         node = move_red_left(node);
     }
 
-    node->left = __delete_min(node->left);
+    node->left = __delete_min(node->left, position);
     return balance(node);
 }
 
-static int delete_min(Node **root) {
-    Node *tmp_ptr = __delete_min(*root);
-    if (!tmp_ptr) {
-        return EXIT_FAILURE;
+static Node *__delete(Node *node, key_tt *key, uint64_t position) {
+    if (!node) {
+        return NULL;
     }
 
-    tmp_ptr->color = BLACK;
-    *root = tmp_ptr;
-
-    return EXIT_SUCCESS;
-}
-
-static Node *__delete(Node *node, key_tt *key) {
     int res = compare(key, node->key);
     if (res < 0) {
-        if (!is_red(node->left) && !is_red(node->left->left)) {
-            node = move_red_left(node);
-        }
+        if (node->left) {
+            if (!is_red(node->left) && !is_red(node->left->left)) {
+                node = move_red_left(node);
+            }
 
-        node->left = __delete(node->left, key);
+            node->left = __delete(node->left, key, position);
+        }
     }
     else {
         if (is_red(node->left)) {
             node = rotate_right(node);
         }
 
-        if (res == 0 && !node->right) {
-            free_element(node);
-            return NULL;
-        }
-
-        if (!is_red(node->right) && !is_red(node->right->left)) {
-            node = move_red_right(node);
-        }
-
-        if (compare(key, node->key) == 0) {
-            Node *tmp_ptr = __find_min(node->right);
-            if (!tmp_ptr) {
+        if (compare(key, node->key) == 0 && !node->right) {
+            if (node->value_size > 1) {
+                resize_value(node, position);
                 return NULL;
             }
-
-            node->key = tmp_ptr->key;
-            node->value = tmp_ptr->value;
-            node->right = __delete_min(node->right);
+            else {
+                free_element(node);
+                return NULL;
+            }
         }
-        else {
-            node->right = __delete(node->right, key);
+        if (node->right) {
+            if (!is_red(node->right) && !is_red(node->right->left)) {
+                node = move_red_right(node);
+            }
+
+            if (compare(key, node->key) == 0) {
+                Node *tmp_ptr = __find_min(node->right);
+                if (!tmp_ptr) {
+                    return node;
+                }
+
+                node->key = tmp_ptr->key;
+                node->value = tmp_ptr->value;
+                node->right = __delete_min(node->right, position);
+            }
+            else {
+                node->right = __delete(node->right, key, position);
+            }
         }
     }
 
     return balance(node);
 }
 
-int delete(Node **root, key_tt *key) {
-    Node *tmp_ptr = __delete(*root, key);
+int delete(Node **root, key_tt *key, uint64_t position) {
+    Node *tmp_ptr = __delete(*root, key, position);
     if (!tmp_ptr) {
         return EXIT_FAILURE;
     }

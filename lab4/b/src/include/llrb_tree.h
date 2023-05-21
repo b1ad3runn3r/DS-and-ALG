@@ -26,7 +26,7 @@ value_t *search_min(Node **root, uint64_t position);
 
 int insert(Node **root, key_tt *key, value_t value);
 
-int delete(Node **root, key_tt *key);
+int delete(Node **root, key_tt *key, uint64_t position);
 
 void traverse(Node *node, key_tt *start, key_tt *end);
 void print_tree(Node *node, uint64_t level);
