@@ -20,7 +20,7 @@ int dialog(int opts_size) {
         if (status) {
             printf("Wrong input! Try again.\n");
         }
-    } while (choice < 0 || choice >= opts_size || !status);
+    } while (choice < 0 || choice >= opts_size || status != 0);
 
     return choice;
 }
