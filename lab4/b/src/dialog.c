@@ -34,15 +34,18 @@ int d_insert(Node **tree) {
 
     uint64_t data = 0;
     if (get_size_t("Enter data: --> ", &data)) {
+        free(key);
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
 
     if (insert(tree, key, data)) {
         printf("Insertion error.\n");
+        free(key);
         return EXIT_FAILURE;
     }
 
+    free(key);
     return EXIT_SUCCESS;
 }
 
@@ -55,20 +58,21 @@ int d_delete(Node **tree) {
 
     uint64_t data = 0;
     if (get_size_t("Enter data: --> ", &data)) {
+        free(key);
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
 
+    if (delete(tree, key)) {
+        free(key);
+        return EXIT_FAILURE;
+    }
+
+    free(key);
     return EXIT_SUCCESS;
 }
 
 int d_traverse(Node **tree) {
-    char *key = readline("Enter key: --> ");
-    if (!key) {
-        printf("Wrong input.\n");
-        return EXIT_FAILURE;
-    }
-
     char *start = readline("Enter start key: --> ");
     if (!start) {
         printf("Wrong input.\n");
@@ -77,12 +81,16 @@ int d_traverse(Node **tree) {
 
     char *end = readline("Enter end key: --> ");
     if (!end) {
+        free(start);
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
 
     traverse(*tree, start, end);
+    putchar('\n');
 
+    free(start);
+    free(end);
     return EXIT_SUCCESS;
 }
 
@@ -95,6 +103,7 @@ int d_search(Node **tree) {
 
     uint64_t position = 0;
     if (get_size_t("Enter position (index): --> ", &position)) {
+        free(key);
         printf("Wrong input.\n");
         return EXIT_FAILURE;
     }
@@ -102,13 +111,15 @@ int d_search(Node **tree) {
     value_t *result = search(tree, key, position);
 
     if (!result) {
+        free(key);
         printf("Nothing found.\n");
         return EXIT_FAILURE;
     }
     else {
-        printf("Found value: %lu", *result);
+        printf("Found value: %lu\n", *result);
     }
 
+    free(key);
     return EXIT_SUCCESS;
 }
 
@@ -126,7 +137,7 @@ int d_search_min(Node **tree) {
         return EXIT_FAILURE;
     }
     else {
-        printf("Found value: %lu", *result);
+        printf("Found value: %lu\n", *result);
     }
 
     return EXIT_SUCCESS;
