@@ -189,3 +189,83 @@ int d_load_tree(Node **tree) {
     free(path);
     return EXIT_SUCCESS;
 }
+
+int d_timing(Node **tree) {
+    Node *root = NULL;
+    srand(time(NULL));
+    clock_t start, end;
+
+    int n = 100;
+    size_t cnt = 1e3;
+    size_t m = 0;
+
+    for (int i = 1; i <= n; i++) {
+        // Fill
+        for (int j = 0; j < cnt; j++) {
+            char *key = calloc(10, sizeof(char));
+            for (int k = 0; k < 10 - 1; k++) {
+                key[k] = rand() % 26 + 'a';
+            }
+
+            insert(&root, key, rand() % 1000);
+            free(key);
+        }
+
+        m = 0;
+        start = clock();
+        for (int j = 0; j < cnt; j++) {
+            char *key = calloc(10, sizeof(char));
+            for (int k = 0; k < 10 - 1; k++) {
+                key[k] = rand() % 26 + 'a';
+            }
+
+            if (search(&root, key, 0)) {
+                ++m;
+            }
+            free(key);
+        }
+        end = clock();
+
+        printf("%zu items found.\n", m);
+        printf("test #%d, find, number of nodes = %zu, time = %ld\n", i, i * cnt, end - start);
+
+        m = 0;
+        start = clock();
+        for (int j = 0; j < cnt; j++) {
+            char *key = calloc(10, sizeof(char));
+            for (int k = 0; k < 10 - 1; k++) {
+                key[k] = rand() % 26 + 'a';
+            }
+
+            if (!insert(&root, key, rand() % 1000)) {
+                ++m;
+            }
+            free(key);
+        }
+        end = clock();
+
+        printf("%zu items inserted.\n", m);
+        printf("test #%d, insert, number of nodes = %zu, time = %ld\n", i, i * cnt, end - start);
+
+        m = 0;
+        start = clock();
+        for (int j = 0; j < 1000; j++) {
+            char *key = calloc(10, sizeof(char));
+            for (int k = 0; k < 10 - 1; k++) {
+                key[k] = rand() % 26 + 'a';
+            }
+
+            if (!delete(&root, key, 0)) {
+                ++m;
+            }
+            free(key);
+        }
+        end = clock();
+
+        printf("%zu items deleted.\n", m);
+        printf("test #%d, delete, number of nodes = %zu, time = %ld\n", i, i * cnt, end - start);
+    }
+
+    free_tree(&root);
+    return EXIT_SUCCESS;
+}

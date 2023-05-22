@@ -24,10 +24,11 @@ int (*const f_opts[])(Node **) = {
         d_search,
         d_search_min,
         d_print_tree,
-        d_load_tree
+        d_load_tree,
+        d_timing
 };
 
-int n_opts = 8;
+int n_opts = 9;
 
 int main(int argc, char **argv) {
     Node *root = NULL;

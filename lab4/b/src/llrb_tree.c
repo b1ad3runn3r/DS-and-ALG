@@ -158,10 +158,6 @@ static Node *__insert(Node *node, key_tt *key, value_t value) {
         return create_node(key, value);
     }
 
-    if (is_red(node->left) && is_red(node->right)) {
-        flip_color(node);
-    }
-
     int res = compare(key, node->key);
     switch (res) {
         case 0:
@@ -185,6 +181,10 @@ static Node *__insert(Node *node, key_tt *key, value_t value) {
 
     if (is_red(node->left) && is_red(node->left->left)) {
         node = rotate_right(node);
+    }
+
+    if (is_red(node->left) && is_red(node->right)) {
+        flip_color(node);
     }
 
     return node;
