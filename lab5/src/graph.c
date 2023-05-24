@@ -549,6 +549,11 @@ void shortest_path(Graph *graph, key_tt *start, key_tt *end) {
     Vertex **path = print_path(graph, start_vertex, end_vertex, &path_size);
 
     printf("Shortest path from %s to %s: \n", start, end);
+    if (!path) {
+        printf("No path found\n");
+        return ;
+    }
+
     for (uint64_t i = 0; i < path_size; ++i) {
         printf("%s -> ", path[i]->key);
     }
