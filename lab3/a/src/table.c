@@ -101,23 +101,23 @@ int remove_garbage(Table *table) {
     }
 }
 
-IndexType search(const Table *table, const KeySpace *element, int parent) {
-    if (!table || !element) {
+IndexType search(const Table *table, const KeyType *key, const KeyType *par, int parent) {
+    if (!table || !key) {
         return E_ALLOC;
     }
 
-    if (parent && !(element->par)) {
+    if (parent && !par) {
         return E_NULLPTR;
     }
 
     for (IndexType i = 0; i < table->csize; ++i) {
         if (parent) {
-            if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, element->par)) {
+            if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, par)) {
                 return i;
             }
         }
         else {
-            if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, element->key)) {
+            if ((table->ks + i)->busy && !compare_keys((table->ks + i)->key, key)) {
                 return i;
             }
         }
@@ -126,12 +126,12 @@ IndexType search(const Table *table, const KeySpace *element, int parent) {
     return E_NOTFOUND;
 }
 
-int remove_element(Table *table, const KeySpace *element) {
-    if (!table || !element) {
+int remove_element(Table *table, const KeyType *key) {
+    if (!table || !key) {
         return E_NULLPTR;
     }
 
-    int idx = search(table, element, 0);
+    int idx = search(table, key, NULL, 0);
     if (idx == E_NOTFOUND) {
         return E_NOTFOUND;
     }
@@ -141,7 +141,7 @@ int remove_element(Table *table, const KeySpace *element) {
     for (IndexType i = 0; i < table->csize; ++i) {
         if ((table->ks + i)->par) {
             if (!compare_keys(cur_elem->key, (table->ks + i)->par)) {
-                remove_element(table, table->ks + i);
+                remove_element(table, (table->ks + i)->key);
             }
         }
     }
@@ -149,14 +149,14 @@ int remove_element(Table *table, const KeySpace *element) {
     return E_OK;
 }
 
-int insert(Table *table, const KeySpace *element) {
-    if (!table || !element) {
+int insert(Table *table, KeyType *key, KeyType *par, InfoType* info) {
+    if (!table || !key || !info) {
         return E_NULLPTR;
     }
 
-    if (element->par) {
-        if (search(table, element, 1) == E_NOTFOUND) {
-            return E_INSERT;
+    if (par) {
+        if (search(table, key, par, 1) == E_NOTFOUND) {
+           return E_INSERT;
         }
     }
 
@@ -168,7 +168,7 @@ int insert(Table *table, const KeySpace *element) {
         }
     }
 
-    if (search(table, element, 0) != E_NOTFOUND) {
+    if (search(table, key, par, 0) != E_NOTFOUND) {
         return E_INSERT;
     }
 
@@ -184,9 +184,19 @@ int insert(Table *table, const KeySpace *element) {
         return E_ALLOC;
     }
 
+    Item *data = calloc(1, sizeof(Item));
+    if (!data) {
+        free(tmp_ptr);
+        return E_ALLOC;
+    }
+
+    data->info = info;
+
     table->ks = tmp_ptr;
-    *(table->ks + table->csize) = *element;
+    (table->ks + table->csize)->key = key;
+    (table->ks + table->csize)->par = par;
     (table->ks + table->csize)->busy = 1;
+    (table->ks + table->csize)->info = data;
     table->csize += 1;
 
     return E_OK;

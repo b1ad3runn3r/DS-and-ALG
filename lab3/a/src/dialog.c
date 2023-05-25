@@ -25,37 +25,6 @@ int dialog(int opts_size) {
     return choice;
 }
 
-static KeySpace *create_element(char* key, char* par, int data) {
-    if (!key){
-        return NULL;
-    }
-
-    KeySpace *element = calloc(1, sizeof(KeySpace));
-    if (!element) {
-        return NULL;
-    }
-
-    Item *item = calloc(1, sizeof(Item));
-    if (!item) {
-        free(element);
-        return NULL;
-    }
-
-    item->info = calloc(1, sizeof(InfoType));
-    if (!item->info) {
-        free(item);
-        free(element);
-        return NULL;
-    }
-
-    *(item->info) = data;
-    element->key = key;
-    element->par = par;
-    element->info = item;
-
-    return element;
-}
-
 int d_insert(Table *table) {
     char *key = readline("Enter key: ");
     if (!key) {
@@ -67,6 +36,7 @@ int d_insert(Table *table) {
         free(key);
         return E_ALLOC;
     }
+
     if (par[0] == '\0') {
         free(par);
         par = NULL;
@@ -79,20 +49,22 @@ int d_insert(Table *table) {
         return E_WRONGINPUT;
     }
 
-    KeySpace *element = create_element(key, par, data);
-    if (!element) {
+    InfoType *data_p = calloc(1, sizeof(InfoType));
+    if (!data_p) {
         free(key);
         free(par);
-        return E_WRONGINPUT;
+        return E_ALLOC;
     }
 
-    int status = insert(table, element);
+    int status = insert(table, key, par, data_p);
     if (status != E_OK) {
-        free_element(element);
+        free(data_p);
+        free(key);
+        free(par);
+        return status;
     }
-    parse_result(status);
-    free(element);
 
+    parse_result(status);
     return E_OK;
 }
 
@@ -102,18 +74,10 @@ int d_remove(Table *table) {
         return E_WRONGINPUT;
     }
 
-    KeySpace *element = create_element(key, NULL, 0);
-    int status = E_ALLOC;
-
-    if (element) {
-        status = remove_element(table, element);
-    }
-
+    int status = remove_element(table, key);
     parse_result(status);
 
-    free_element(element);
-    free(element);
-
+    free(key);
     return E_OK;
 }
 
@@ -122,19 +86,17 @@ int d_search(Table *table) {
     if (!key) {
         return E_WRONGINPUT;
     }
-    KeySpace *element = create_element(key, NULL, 0);
-    if (element) {
-        IndexType found = search(table, element, 0);
-        if (found != E_NOTFOUND) {
-            printf("Found: %d\n", found);
-            print_element(table->ks + found);
-        }
-        else {
-            parse_result(E_NOTFOUND);
-        }
+
+    IndexType found = search(table, key, NULL, 0);
+    if (found != E_NOTFOUND) {
+        printf("Found: %d\n", found);
+        print_element(table->ks + found);
     }
-    free_element(element);
-    free(element);
+    else {
+        parse_result(E_NOTFOUND);
+    }
+
+    free(key);
     return E_OK;
 }
 
