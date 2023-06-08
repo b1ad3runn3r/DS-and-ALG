@@ -4,28 +4,29 @@
 #include "include/utils.h"
 #include "include/dialog.h"
 
+const int n_opts = 5;
+
+const char *opts[] = {
+        "0. Quit",
+        "1. Insert",
+        "2. Remove",
+        "3. Search",
+        "4. Print table",
+};
+
+int (* const f_opts[])(Table *) = {
+        NULL,
+        d_insert,
+        d_remove,
+        d_search,
+        d_print
+};
+
 int main(int argc, const char **argv) {
     if (argc != 2) {
         printf("Usage: %s <file>\n", argv[0]);
         return EXIT_FAILURE;
     }
-
-    const int n_opts = 5;
-    const char *opts[] = {
-            "0. Quit",
-            "1. Insert",
-            "2. Remove",
-            "3. Search",
-            "4. Print table",
-    };
-
-    int (* const f_opts[])(Table *) = {
-            NULL,
-            d_insert,
-            d_remove,
-            d_search,
-            d_print
-    };
 
     Table *table = init_table();
     if (!table) {

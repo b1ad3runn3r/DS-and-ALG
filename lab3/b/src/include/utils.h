@@ -4,7 +4,6 @@
 
 #include <stdio.h>
 
-void clear_screen();
 char *readline(const char *prompt);
 int get_int(const char *prompt, int *res);
 

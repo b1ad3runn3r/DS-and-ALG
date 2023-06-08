@@ -3,6 +3,34 @@
 #include "include/table.h"
 #include "include/types.h"
 
+static void read_params(FILE *fp, int* param1, int *param2) {
+    if (!fp) {
+        return;
+    }
+
+    rewind(fp);
+    fread(param1, sizeof(int), 1, fp);
+    fread(param2, sizeof(int), 1, fp);
+}
+
+static void read_at(FILE *fp, long offset, void *ptr, size_t size, int mode) {
+    if (!fp) {
+        return ;
+    }
+
+    fseek(fp, offset, mode);
+    fread(ptr, size, 1, fp);
+}
+
+static void write_at(FILE *fp, long offset, void *ptr, size_t size, int mode) {
+    if (!fp) {
+        return ;
+    }
+
+    fseek(fp, offset, mode);
+    fwrite(ptr, size, 1, fp);
+}
+
 int load_table(Table *table, const char *filename) {
     if (!table) {
         return E_NULLPTR;
@@ -18,11 +46,19 @@ int load_table(Table *table, const char *filename) {
         return E_NOFILE;
     }
 
-    rewind(table->fp);
-    fread(&table->msize, sizeof(int), 1, table->fp);
-    fread(&table->csize, sizeof(int), 1, table->fp);
+    read_params(table->fp, &(table->msize), &(table->csize));
 
     return E_OK;
+}
+
+static void write_params(FILE *fp, int *param1, int *param2) {
+    if (!fp) {
+        return;
+    }
+
+    rewind(fp);
+    fwrite(param1, sizeof(int), 1, fp);
+    fwrite(param2, sizeof(int), 1, fp);
 }
 
 int save_table(Table *table) {
@@ -34,9 +70,7 @@ int save_table(Table *table) {
         return E_NOFILE;
     }
 
-    rewind(table->fp);
-    fwrite(&table->msize, sizeof(int), 1, table->fp);
-    fwrite(&table->csize, sizeof(int), 1, table->fp);
+    write_params(table->fp, &(table->msize), &(table->csize));
     fflush(table->fp);
 
     return E_OK;
@@ -59,8 +93,16 @@ void free_table(Table *table) {
         return ;
     }
 
+    if (!table->filename) {
+        return ;
+    }
+
     free(table->filename);
     free(table);
+}
+
+static void do_nothing() {
+    return;
 }
 
 int f_print_element(FILE *fp, const KeySpace *element, const Item *item) {
@@ -75,20 +117,28 @@ int f_print_element(FILE *fp, const KeySpace *element, const Item *item) {
     if (!key) {
         return E_ALLOC;
     }
+
     fseek(fp, element->key_offset, SEEK_SET);
+
+    do_nothing();
+
     fread(key, sizeof(char), element->key_len + 1, fp);
 
     if (element->par_len > 0) {
         par = calloc(element->par_len + 1, sizeof(char));
         if (!par) {
             free(key);
+            key = NULL;
             return E_ALLOC;
         }
-        fseek(fp, element->par_offset, SEEK_SET);
-        fread(par, sizeof(char), element->par_len + 1, fp);
+
+        read_at(fp, element->par_offset, par, element->par_len + 1, SEEK_SET);
     }
 
     fseek(fp, item->offset, SEEK_SET);
+
+    do_nothing();
+
     fread(&data, sizeof(int), 1, fp);
 
     printf(
@@ -100,7 +150,10 @@ int f_print_element(FILE *fp, const KeySpace *element, const Item *item) {
             );
 
     free(par);
+    par = NULL;
     free(key);
+    key = NULL;
+
     return E_OK;
 }
 
@@ -116,12 +169,16 @@ int f_print_table(Table *table) {
     KeySpace cur_element;
     Item cur_item;
 
-    printf("Busy\tKey\tPar\tInfo\n");
+    printf("Busy");
+    printf("\tKey");
+    printf("\tPar");
+    printf("\tInfo\n");
     for (int i = 0; i < table->csize; ++i) {
         long offset = 2 * sizeof(int) + i * (sizeof(KeySpace) + sizeof(Item));
-        fseek(table->fp, offset, SEEK_SET);
-        fread(&cur_element, sizeof(KeySpace), 1, table->fp);
-        fread(&cur_item, sizeof(Item), 1, table->fp);
+
+        read_at(table->fp, offset, &cur_element, sizeof(KeySpace), SEEK_SET);
+        read_at(table->fp, offset + sizeof(KeySpace), &cur_item, sizeof(Item), SEEK_SET);
+
         f_print_element(table->fp, &cur_element, &cur_item);
     }
 
@@ -142,9 +199,7 @@ int f_remove_garbage(Table *table) {
         return E_NOFILE;
     }
 
-    rewind(tmp);
-    fwrite(&table->msize, sizeof(int), 1, tmp);
-    fwrite(&table->csize, sizeof(int), 1, tmp);
+    write_params(tmp, &(table->msize), &(table->csize));
 
     char *tmp_s = calloc(table->msize, sizeof(KeySpace) + sizeof(Item));
     if (!tmp_s) {
@@ -160,14 +215,11 @@ int f_remove_garbage(Table *table) {
 
     for (int i = 0; i < table->csize; ++i) {
         KeySpace cur_element;
-        memset(&cur_element, 0, sizeof(KeySpace));
         Item cur_item;
-        memset(&cur_item, 0, sizeof(Item));
         int data = 0;
 
         long offset = 2 * sizeof(int) + i * (sizeof(KeySpace) + sizeof(Item));
-        fseek(table->fp, offset, SEEK_SET);
-        fread(&cur_element, sizeof(KeySpace), 1, table->fp);
+        read_at(table->fp, offset, &cur_element, sizeof(KeySpace), SEEK_SET);
 
         if (cur_element.busy) {
             fread(&cur_item, sizeof(Item), 1, table->fp);
@@ -178,13 +230,14 @@ int f_remove_garbage(Table *table) {
                 return E_ALLOC;
             }
 
-            fseek(table->fp, cur_element.key_offset, SEEK_SET);
-            fread(key, sizeof(char), cur_element.key_len + 1, table->fp);
+            read_at(table->fp, cur_element.key_offset, key, cur_element.key_len + 1, SEEK_SET);
 
             fseek(tmp, 0, SEEK_END);
             cur_element.key_offset = ftell(tmp);
             fwrite(key, sizeof(char), cur_element.key_len + 1, tmp);
+
             free(key);
+            key = NULL;
 
             if (cur_element.par_len > 0) {
                 par = calloc(cur_element.par_len + 1, sizeof(char));
@@ -193,12 +246,13 @@ int f_remove_garbage(Table *table) {
                     return E_ALLOC;
                 }
 
-                fseek(table->fp, cur_element.par_offset, SEEK_SET);
-                fread(par, sizeof(char),cur_element.par_len + 1, table->fp);
+                read_at(table->fp, cur_element.par_offset, par, cur_element.par_len + 1, SEEK_SET);
 
                 cur_element.par_offset = ftell(tmp);
                 fwrite(par, sizeof(char), cur_element.par_len + 1, tmp);
+
                 free(par);
+                par = NULL;
             }
 
             fseek(table->fp, cur_item.offset, SEEK_SET);
@@ -208,9 +262,9 @@ int f_remove_garbage(Table *table) {
             fwrite(&data, sizeof(int), 1, tmp);
 
             long tmp_offset = 2 * sizeof(int) + cur_size * (sizeof(KeySpace) + sizeof(Item));
-            fseek(tmp, tmp_offset, SEEK_SET);
-            fwrite(&cur_element, sizeof(KeySpace), 1, tmp);
-            fwrite(&cur_item, sizeof(Item), 1, tmp);
+
+            write_at(table->fp, tmp_offset, &cur_element, sizeof(KeySpace), SEEK_SET);
+            write_at(table->fp, tmp_offset + sizeof(KeySpace), &cur_item, sizeof(Item), SEEK_SET);
             cur_size += 1;
         }
     }
@@ -219,15 +273,17 @@ int f_remove_garbage(Table *table) {
     fclose(tmp);
     fclose(table->fp);
 
+    if (remove(table->filename)) {
+        return E_NOFILE;
+    }
+
     rename(".tmp", table->filename);
     table->fp = fopen(table->filename, "r+b");
     if (!table->fp) {
         return E_NOFILE;
     }
 
-    rewind(table->fp);
-    fwrite(&table->msize, sizeof(int), 1, table->fp);
-    fwrite(&table->csize, sizeof(int), 1, table->fp);
+    write_params(table->fp, &(table->msize), &(table->csize));
 
     return table->msize == table->csize;
 }
@@ -245,19 +301,24 @@ int f_search(const Table *table, const char *key) {
     char *cur_key = NULL;
     for (int i = 0; i < table->csize; ++i) {
         long offset = 2 * sizeof(int) + i * (sizeof(KeySpace) + sizeof(Item));
-        fseek(table->fp, offset, SEEK_SET);
-        fread(&cur_element, sizeof(KeySpace), 1, table->fp);
+
+
+        read_at(table->fp, offset, &cur_element, sizeof(KeySpace), SEEK_SET);
+
         if (cur_element.busy) {
             cur_key = calloc(cur_element.key_len + 1, sizeof(char));
             if (!cur_key) {
                 return E_ALLOC;
             }
-            fseek(table->fp, cur_element.key_offset, SEEK_SET);
-            fread(cur_key, sizeof(char), cur_element.key_len + 1, table->fp);
+
+            read_at(table->fp, cur_element.key_offset, cur_key, cur_element.key_len + 1, SEEK_SET);
+
             if (!compare_keys(cur_key, key)) {
                 free(cur_key);
+                cur_key = NULL;
                 return i;
             }
+
             free(cur_key);
             cur_key = NULL;
         }
@@ -277,13 +338,12 @@ int f_remove_element(Table *table, char *key, int idx) {
 
     KeySpace cur_element;
     long cur_offset = 2 * sizeof(int) + idx * (sizeof(KeySpace) + sizeof(Item));
-    fseek(table->fp, cur_offset, SEEK_SET);
-    fread(&cur_element, sizeof(KeySpace), 1, table->fp);
+
+    read_at(table->fp, cur_offset, &cur_element, sizeof(KeySpace), SEEK_SET);
 
     cur_element.busy = 0;
 
-    fseek(table->fp, cur_offset, SEEK_SET);
-    fwrite(&cur_element, sizeof(KeySpace), 1, table->fp);
+    write_at(table->fp, cur_offset, &cur_element, sizeof(KeySpace), SEEK_SET);
 
     for (int i = 0; i < table->csize; ++i) {
         if (i == idx) {
@@ -292,8 +352,8 @@ int f_remove_element(Table *table, char *key, int idx) {
         KeySpace loop_element;
 
         long loop_offset = 2 * sizeof(int) + i * (sizeof(KeySpace) + sizeof(Item));
-        fseek(table->fp, loop_offset, SEEK_SET);
-        fread(&loop_element, sizeof(KeySpace), 1, table->fp);
+
+        read_at(table->fp, loop_offset, &loop_element, sizeof(KeySpace), SEEK_SET);
 
         if (loop_element.busy == 0) {
             continue;
@@ -305,13 +365,14 @@ int f_remove_element(Table *table, char *key, int idx) {
                 return E_ALLOC;
             }
 
-            fseek(table->fp, loop_element.par_offset, SEEK_SET);
-            fread(par, sizeof(char), loop_element.par_len + 1, table->fp);
+            read_at(table->fp, loop_element.par_offset, par, loop_element.par_len + 1, SEEK_SET);
+
             if (!compare_keys(par, key)) {
                 f_remove_element(table, par, i);
             }
 
             free(par);
+            par = NULL;
         }
     }
 
@@ -355,9 +416,11 @@ int f_insert(Table *table, const char *key, const char *par, int data) {
     if (par) {
         cur_element.par_offset = ftell(table->fp);
         cur_element.par_len = (long) strlen(par);
+        
         fwrite(par, sizeof(char), cur_element.par_len + 1, table->fp);
         fflush(table->fp);
-    } else {
+    } 
+    else {
         cur_element.par_offset = 0;
         cur_element.par_len = 0;
     }
@@ -368,9 +431,10 @@ int f_insert(Table *table, const char *key, const char *par, int data) {
     cur_element.busy = 1;
 
     long cur_offset = 2 * sizeof(int) + (table->csize) * (sizeof(KeySpace) + sizeof(Item));
-    fseek(table->fp, cur_offset, SEEK_SET);
-    fwrite(&cur_element, sizeof(KeySpace), 1, table->fp);
-    fwrite(&cur_item, sizeof(Item), 1, table->fp);
+
+    write_at(table->fp, cur_offset, &cur_element, sizeof(KeySpace), SEEK_SET);
+    write_at(table->fp, cur_offset + sizeof(KeySpace), &cur_item, sizeof(Item), SEEK_SET);
+
     table->csize += 1;
 
     return E_OK;
