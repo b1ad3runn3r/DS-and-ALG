@@ -1,5 +1,5 @@
-#include "airport.h"
-#include "queue.h"
+#include "include/airport.h"
+#include "include/queue.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
