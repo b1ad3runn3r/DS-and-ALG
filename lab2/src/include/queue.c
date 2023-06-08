@@ -6,7 +6,9 @@
 
 Queue *init_queue() {
     Queue *res = calloc(1, sizeof(Queue));
-    if (!res) return NULL;
+    if (!res) {
+        return NULL;
+    }
 
     res->data = calloc(Q_MAX, sizeof(void *));
     if (!(res->data)) {
@@ -21,46 +23,67 @@ int enqueue(Queue *q, void *data) {
     if (q->front == q->rear && q->len == Q_MAX) {
         return EXIT_FAILURE;
     }
-    q->data[q->rear] = data;
-    q->rear = (q->rear + 1) % Q_MAX;
+    
+    void *mid_ptr = data;
+    q->data[q->rear] = mid_ptr;
+    q->rear += 1;
+    q->rear %= Q_MAX;
+
     q->len += 1;
 
     return EXIT_SUCCESS;
 }
 
 void *dequeue(Queue *q) {
-    if (q->front == q->rear && q->len == Q_MAX) {
+    if (q->front == q->rear && q->len == 0) {
         return NULL;
     }
 
     void *res = NULL;
     res = q->data[q->front];
-    q->front = (q->front + 1) % Q_MAX;
+    q->front += 1;
+    q->front %= Q_MAX;
     q->len -= 1;
 
     return res;
 }
 
 void print_queue(const Queue *q, void (*_print)(const void *)) {
-    if (!first(q)) {
+    if (!q || !q->len) {
         return;
     }
 
-    for (size_t i = q->front; i != q->rear; i = (i + 1) % Q_MAX) {
-        (*_print)(q->data[i]);
+    size_t cur_idx = q->front;
+    cur_idx += 1;
+    cur_idx -= 1;
+
+    while (cur_idx != q->rear) {
+        (*_print)(q->data[cur_idx]);
+        cur_idx = (cur_idx + 1) % Q_MAX;
     }
 }
 
 void free_queue(Queue *q, void (*_free)(void *)) {
-    if (q) {
-        if (q->data) {
-            for (size_t i = q->front; i != q->rear; i = (i + 1) % Q_MAX) {
-                (*_free)(q->data[i]);
-            }
-            free(q->data);
-        }
-        free(q);
+    if (!q) {
+        return;
     }
+
+
+    if (q->data) {
+
+        size_t cur_idx = q->front;
+        cur_idx += 1;
+        cur_idx -= 1;
+
+        while (cur_idx != q->rear) {
+            (*_free)(q->data[cur_idx]);
+            cur_idx = (cur_idx + 1) % Q_MAX;
+        
+        }
+        free(q->data);
+    }
+
+    free(q);
 }
 
 void *first(const Queue *q) {
@@ -77,8 +100,12 @@ Queue *init_queue() {
     return calloc(1, sizeof(Queue));
 }
 
+static Node *new_node() {
+    return calloc(1, sizeof(Node));
+}
+
 int enqueue(Queue *q, void *data) {
-    Node *tmp = calloc(1, sizeof(Node));
+    Node *tmp = new_node();
     if (!tmp) {
         return EXIT_FAILURE;
     }
@@ -86,19 +113,19 @@ int enqueue(Queue *q, void *data) {
     tmp->data = data;
     tmp->next = NULL;
 
-    if (!first(q)) {
-        q->front = tmp;
-    } else {
-        q->rear->next = tmp;
+    if (!q->rear) {
+        q->front = q->rear = tmp;
+        return EXIT_SUCCESS;
     }
 
+    q->rear->next = tmp;
     q->rear = tmp;
 
     return EXIT_SUCCESS;
 }
 
 void *dequeue(Queue *q) {
-    if (!first(q)) {
+    if (!(q->front)) {
         return NULL;
     }
 
@@ -106,7 +133,7 @@ void *dequeue(Queue *q) {
     void *ret = tmp->data;
     q->front = tmp->next;
 
-    if (!first(q)) {
+    if (!q->front) {
         q->rear = NULL;
     }
 
@@ -116,7 +143,7 @@ void *dequeue(Queue *q) {
 }
 
 void print_queue(const Queue *q, void (*_print)(const void *)) {
-    if (!first(q)) {
+    if (!q->front) {
         return;
     }
 
@@ -140,10 +167,17 @@ void free_queue(Queue *q, void (*_free)(void *)) {
 }
 
 void *first(const Queue *q) {
+    if ((q->front)) {
+        return q->front->data;
+    }
+    
     if (!(q->front)) {
         return NULL;
     }
-    return q->front->data;
+
+    else {
+        return NULL;
+    }
 }
 
 #endif
