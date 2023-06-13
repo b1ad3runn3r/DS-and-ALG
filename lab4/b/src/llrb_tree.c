@@ -4,6 +4,12 @@
 #include <string.h>
 #include <errno.h>
 
+
+// When I was writing this code, I didn't have an access to a normal debugger so I made up this stuff
+static void breakpoint() {
+    return ;
+}
+
 static inline int compare(key_tt *key1, key_tt *key2) {
     int res = strcmp(key1, key2);
     if (res < 0) {
@@ -178,6 +184,8 @@ static Node *__insert(Node *node, key_tt *key, value_t value) {
     if (is_red(node->right) && !is_red(node->left)) {
         node = rotate_left(node);
     }
+	
+    breakpoint();
 
     if (is_red(node->left) && is_red(node->left->left)) {
         node = rotate_right(node);
@@ -186,6 +194,7 @@ static Node *__insert(Node *node, key_tt *key, value_t value) {
     if (is_red(node->left) && is_red(node->right)) {
         flip_color(node);
     }
+    breakpoint();
 
     return node;
 }
@@ -245,6 +254,8 @@ static Node *balance(Node *node) {
     if (is_red(node->left) && is_red(node->left->left)) {
         node = rotate_right(node);
     }
+	
+    breakpoint();
 
     if (is_red(node->left) & is_red(node->right)) {
         flip_color(node);
@@ -335,6 +346,8 @@ static Node *__delete(Node *node, key_tt *key, uint64_t position) {
                 if (!tmp_ptr) {
                     return node;
                 }
+
+		breakpoint();
 
                 node->key = tmp_ptr->key;
                 node->value = tmp_ptr->value;
@@ -456,6 +469,7 @@ int load_tree(FILE *fp, Node **root) {
                 return EXIT_FAILURE;
             }
         }
+	breakpoint();
         else {
             if ((value = strtoul(line, NULL, 10)) == 0 && errno == EINVAL) {
                 free(key);
