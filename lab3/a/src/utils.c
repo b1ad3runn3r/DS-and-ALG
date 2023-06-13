@@ -5,10 +5,6 @@
 #include <string.h>
 #include <errno.h>
 
-void clear_screen() {
-    printf("\033[;H\033[J");
-}
-
 char *readline(const char* prompt) {
     printf("%s", prompt);
 

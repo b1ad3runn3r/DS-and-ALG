@@ -34,7 +34,6 @@ int main() {
         }
     }
 
-    //clear_screen();
     Table *table = init_table(msize);
     if (!table) {
         return EXIT_FAILURE;
