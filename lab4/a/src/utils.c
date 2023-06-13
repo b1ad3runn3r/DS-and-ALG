@@ -9,41 +9,12 @@ void clear_screen() {
 
 char *readline(const char* prompt) {
     printf("%s", prompt);
-    char buf[CHUNK + 1] = {0};
-    char* result = NULL;
+
+    char *buf = NULL;
     size_t len = 0;
-    int scan_res = 0;
+    getline(&buf, &len, stdin);
 
-    do {
-        scan_res = scanf("%255[^\n]", buf);
-        if (scan_res < 0) {
-            free(result);
-            return NULL;
-        }
-        else if (scan_res > 0) {
-            size_t chunk_len = strlen(buf);
-            size_t str_len = len + chunk_len;
-            char *tmp = realloc(result, sizeof(char) * (str_len + 1));
-            if (!tmp) {
-                break;
-            }
-            result = tmp;
-            memcpy(result + len, buf, chunk_len);
-            len = str_len;
-        }
-        else {
-            scanf("%*c");
-        }
-    } while (scan_res > 0);
-
-    if (len > 0) {
-        result[len] = '\0';
-    }
-    else {
-        result = calloc(1, sizeof(char));
-    }
-
-    return result;
+    return buf;
 }
 
 int get_int(const char *prompt, int *res) {
