@@ -4,6 +4,34 @@
 #include "include/table.h"
 #include "include/types.h"
 
+static void read_params(FILE *fp, int* param1, int *param2) {
+    if (!fp) {
+        return;
+    }
+
+    rewind(fp);
+    fread(param1, sizeof(int), 1, fp);
+    fread(param2, sizeof(int), 1, fp);
+}
+
+static void read_at(FILE *fp, long offset, void *ptr, size_t size, int mode) {
+    if (!fp) {
+        return ;
+    }
+
+    fseek(fp, offset, mode);
+    fread(ptr, size, 1, fp);
+}
+
+static void write_at(FILE *fp, long offset, void *ptr, size_t size, int mode) {
+    if (!fp) {
+        return ;
+    }
+
+    fseek(fp, offset, mode);
+    fwrite(ptr, size, 1, fp);
+}
+
 int load_table(Table *table, const char *filename) {
     if (!table) {
         return E_NULLPTR;
@@ -19,10 +47,19 @@ int load_table(Table *table, const char *filename) {
         return E_NOFILE;
     }
 
-    rewind(table->fp);
-    fread(&table->msize, sizeof(int), 1, table->fp);
+    read_params(table->fp, &(table->msize), &(table->csize));
 
     return E_OK;
+}
+
+static void write_params(FILE *fp, int *param1, int *param2) {
+    if (!fp) {
+        return;
+    }
+
+    rewind(fp);
+    fwrite(param1, sizeof(int), 1, fp);
+    fwrite(param2, sizeof(int), 1, fp);
 }
 
 int save_table(Table *table) {
@@ -34,8 +71,7 @@ int save_table(Table *table) {
         return E_NOFILE;
     }
 
-    rewind(table->fp);
-    fwrite(&table->msize, sizeof(int), 1, table->fp);
+    write_params(table->fp, &(table->msize), &(table->csize));
     fflush(table->fp);
 
     return E_OK;
@@ -91,11 +127,8 @@ int f_print_element(FILE *fp, const KeySpace *element, const Item *item) {
     KeyType key;
     InfoType data;
 
-    fseek(fp, element->key_offset, SEEK_SET);
-    fread(&key, sizeof(KeyType), 1, fp);
-
-    fseek(fp, item->offset, SEEK_SET);
-    fread(&data, sizeof(InfoType), 1, fp);
+    read_at(fp, element->key_offset, &key, sizeof(KeyType), SEEK_SET);
+    read_at(fp, item->offset, &data, sizeof(Infotype), SEEK_SET);
 
     printf(
             ELEM_FMT,
@@ -120,12 +153,15 @@ int f_print_table(Table *table) {
     KeySpace cur_element;
     Item cur_item;
 
-    printf("Busy\tKey\tRelease\tInfo\n");
+    printf("Busy");
+    printf("\tKey");
+    printf("\tPar");
+    printf("\tInfo\n");
     for (int i = 0; i < table->msize; ++i) {
         long offset = sizeof(int) + i * (sizeof(KeySpace) + sizeof(Item));
-        fseek(table->fp, offset, SEEK_SET);
-        fread(&cur_element, sizeof(KeySpace), 1, table->fp);
-        fread(&cur_item, sizeof(Item), 1, table->fp);
+
+        read_at(table->fp, offset, &cur_element, sizeof(KeySpace), SEEK_SET);
+        read_at(table->fp, offset + sizeof(KeySpace), &cur_item, sizeof(Item), SEEK_SET);
 
         f_print_element(table->fp, &cur_element, &cur_item);
     }
@@ -149,12 +185,10 @@ int f_search(const Table *table, KeyType key, RelType elem_release, int has_rele
         int idx = hash(table, key, i);
 
         long offset = sizeof(int) + idx * (sizeof(KeySpace) + sizeof(Item));
-        fseek(table->fp, offset, SEEK_SET);
-        fread(&cur_element, sizeof(KeySpace), 1, table->fp);
+        read_at(table->fp, offset, &cur_element, sizeof(KeySpace), SEEK_SET);
 
         if (cur_element.busy) {
-            fseek(table->fp, cur_element.key_offset, SEEK_SET);
-            fread(&cur_key, sizeof(KeyType), 1, table->fp);
+            read_at(table->fp, cur_element.key_offset, cur_key, cur_element.key_len + 1, SEEK_SET);
 
             if (compare_keys(cur_key, key, cur_element.release, elem_release, has_release)) {
                 *last_idx = i + 1;
@@ -179,13 +213,11 @@ int f_remove_element(Table *table, KeyType key, RelType elem_release, int has_re
     while (idx != E_NOTFOUND) {
         KeySpace cur_element;
         long cur_offset = sizeof(int) + idx * (sizeof(KeySpace) + sizeof(Item));
-        fseek(table->fp, cur_offset, SEEK_SET);
-        fread(&cur_element, sizeof(KeySpace), 1, table->fp);
+        read_at(table->fp, cur_offset, &cur_element, sizeof(KeySpace), SEEK_SET);
 
         cur_element.busy = 0;
 
-        fseek(table->fp, cur_offset, SEEK_SET);
-        fwrite(&cur_element, sizeof(KeySpace), 1, table->fp);
+        write_at(table->fp, cur_offset, &cur_element, sizeof(KeySpace), SEEK_SET);
 
         idx = f_search(table, key, elem_release, has_release, &last_idx);
     }

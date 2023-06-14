@@ -3,6 +3,7 @@
 #include <string.h>
 #include "include/utils.h"
 #include "include/types.h"
+#include <errno.h>
 
 void clear_screen() {
     printf("\033[;H\033[J");
@@ -10,41 +11,11 @@ void clear_screen() {
 
 char *readline(const char* prompt) {
     printf("%s", prompt);
-    char buf[CHUNK + 1] = {0};
-    char* result = NULL;
+    char *buf = NULL;
     size_t len = 0;
-    int scan_res = 0;
+    getline(&buf, &len, stdin);
 
-    do {
-        scan_res = scanf("%255[^\n]", buf);
-        if (scan_res < 0) {
-            free(result);
-            return NULL;
-        }
-        else if (scan_res > 0) {
-            size_t chunk_len = strlen(buf);
-            size_t str_len = len + chunk_len;
-            char *tmp = realloc(result, sizeof(char) * (str_len + 1));
-            if (!tmp) {
-                break;
-            }
-            result = tmp;
-            memcpy(result + len, buf, chunk_len);
-            len = str_len;
-        }
-        else {
-            scanf("%*c");
-        }
-    } while (scan_res > 0);
-
-    if (len > 0) {
-        result[len] = '\0';
-    }
-    else {
-        result = calloc(1, sizeof(char));
-    }
-
-    return result;
+    return buf;
 }
 
 int get_int(const char *prompt, int *res) {
@@ -54,7 +25,7 @@ int get_int(const char *prompt, int *res) {
     }
 
     int buf = 0;
-    if (sscanf(line, "%d", &buf) <= 0) {
+    if ((buf = strtol(line, NULL, 10)) == 0 && errno == EINVAL) {
         free(line);
         return E_WRONGINPUT;
     }
@@ -71,7 +42,7 @@ int get_size_t(const char *prompt, size_t *res) {
     }
 
     size_t buf = 0;
-    if (sscanf(line, "%zu", &buf) <= 0) {
+    if ((buf = strtoul(line, NULL, 10)) == 0 && errno == EINVAL) {
         free(line);
         return E_WRONGINPUT;
     }
@@ -88,7 +59,7 @@ int get_long(const char *prompt, long *res) {
     }
 
     long buf = 0;
-    if (sscanf(line, "%ld", &buf) <= 0) {
+    if ((buf = strtol(line, NULL, 10)) == 0 && errno == EINVAL) {
         free(line);
         return E_WRONGINPUT;
     }
