@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 static inline size_t count(const char *str, char search) {
     size_t cnt = 0;
@@ -27,13 +28,17 @@ char *buffered_input() {
 
     while (fgets(buffer, BUFFER, stdin)) {
         res_size += strlen(buffer);
+        if (res_size == 0) {
+            return res;
+        }
+
         char *tmp = realloc(res, res_size * sizeof(char));
         if (!tmp) {
             free(res);
             return NULL;
         }
+        
         res = tmp;
-
         res[res_size - 1] = '\0';
         strcat(res, buffer);
     }
@@ -55,8 +60,16 @@ static inline int compare(const void *p1, const void *p2) {
 }
 
 Queue *parse_input(char *input, size_t *amount) {
-    if (!strlen(input)) return NULL;
-    char *saveptr_i = NULL, *saveptr_c = NULL, *word = NULL, *client = NULL;
+    if (!input) {
+        return NULL;
+    }
+
+    size_t in_len = strlen(input);
+    if (in_len) {
+        return NULL;
+    }
+
+    char *saveptr_i = NULL, *saveptr_c = NULL;
 
     char *id = NULL;
     size_t ta = 0, ts = 0;
@@ -69,20 +82,26 @@ Queue *parse_input(char *input, size_t *amount) {
         return NULL;
     }
 
-    word = strtok_r(input, " ", &saveptr_i);
+    char *word = strtok_r(input, " ", &saveptr_i);
     if (!word) { //fuzzer error, didn't think about it
         free_queue(res, free_client);
         return NULL;
     }
+
     *amount = strtoul(word, NULL, 10);
+    if (*amount == 0 && errno == EINVAL) {
+        free_queue(res, free_client);
+        return NULL;
+    }
 
     if (!(*amount)) {
         free_queue(res, free_client);
         return NULL;
     }
 
-    while ((word = strtok_r(NULL, "\t\n ", &saveptr_i))) {
-        client = word;
+    word = strtok_r(NULL, "\t\n ", &saveptr_i);
+    while (word) {
+        char *client = word;
         if (count(client, '/') != 2) {
 
             for (size_t i = 0; i < line_size; ++i) {
@@ -90,6 +109,7 @@ Queue *parse_input(char *input, size_t *amount) {
             }
 
             free(line);
+            free(id);
             free_queue(res, free_client);
             return NULL;
         }
@@ -103,6 +123,7 @@ Queue *parse_input(char *input, size_t *amount) {
             }
 
             free(line);
+            free(id);
             free_queue(res, free_client);
             return NULL;
         }
@@ -111,26 +132,55 @@ Queue *parse_input(char *input, size_t *amount) {
         client = strtok_r(word, "/", &saveptr_c);
         if (client) {
             id = strdup(client);
+            if (!id) {
+                for (size_t i = 0; i < line_size - 1; ++i) {
+                    free_client(line[i]);
+                }
+
+                free(line);
+                free(id);
+                free_queue(res, free_client);
+                return NULL;
+            }
         }
 
         client = strtok_r(NULL, "/", &saveptr_c);
         if (client) {
             ta = strtoul(client, NULL, 10);
+            if (ta == 0 && errno == EINVAL) {
+                for (size_t i = 0; i < line_size - 1; ++i) {
+                    free_client(line[i]);
+                }
+
+                free(line);
+                free(id);
+                free_queue(res, free_client);
+                return NULL;
+            }
         }
 
         client = strtok_r(NULL, "/", &saveptr_c);
         if (client) {
             ts = strtoul(client, NULL, 10);
+            if (ts == 0 && errno == EINVAL) {
+                for (size_t i = 0; i < line_size - 1; ++i) {
+                    free_client(line[i]);
+                }
+
+                free(line);
+                free(id);
+                free_queue(res, free_client);
+                return NULL;
+            }
         }
 
-        if (!id || ta <= 0 || ts <= 0) {
-            free(id);
-
+        if (!id) {
             for (size_t i = 0; i < line_size; ++i) {
                 free_client(line[i]);
             }
 
             free(line);
+            free(id);
             free_queue(res, free_client);
             return NULL;
         }
@@ -157,6 +207,8 @@ Queue *parse_input(char *input, size_t *amount) {
         id = NULL;
         ta = 0;
         ts = 0;
+        
+        word = strtok_r(NULL, "\t\n ", &saveptr_i);
     }
     qsort(line, line_size, sizeof(Client *), compare);
 
@@ -172,6 +224,10 @@ Queue *parse_input(char *input, size_t *amount) {
 }
 
 Airport *init_airport(size_t size) {
+    if (size == 0) {
+        return NULL;
+    }
+
     if (size > Q_MAX) {
         printf("Queue overflow detected. Maximum allowed is %d.\n", Q_MAX);
         size = Q_MAX;
@@ -190,6 +246,10 @@ Airport *init_airport(size_t size) {
 
     for (size_t i = 0; i < size; ++i) {
         (airport->receptions + i)->queue = init_queue();
+        if (!((airport->receptions + i)->queue)) {
+            free_airport(airport);
+        }
+        return NULL;
     }
 
     return airport;
@@ -199,6 +259,11 @@ void print_airport(const Airport *airport) {
     if (!airport || !airport->receptions) {
         return;
     }
+
+    if (airport->size == 0) {
+        return;
+    }
+
     for (size_t i = 0; i < airport->size; i++) {
         printf("Rec. %zu: ", i + 1);
         print_queue((airport->receptions + i)->queue, print_client);
