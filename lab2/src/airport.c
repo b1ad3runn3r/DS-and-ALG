@@ -17,6 +17,24 @@ static inline size_t count(const char *str, char search) {
     return cnt;
 }
 
+static int my_memcpy(void *res, void *src, size_t n) {
+    if (!res || !src) {
+        return EXIT_FAILURE;
+    }
+
+    if (n == 0) {
+        return EXIT_SUCCESS;
+    }
+
+    char *res_ptr  = (char *) (res);
+    char *src_ptr  = (char *) (src);
+    for (size_t i = 0; i < n; ++i) {
+        res_ptr[i] = src_ptr[i];
+    }
+
+    return EXIT_SUCCESS;
+}
+
 char *buffered_input() {
     char buffer[BUFFER] = {0};
     size_t res_size = 1; // it's for \0
@@ -40,7 +58,7 @@ char *buffered_input() {
         
         res = tmp;
         res[res_size - 1] = '\0';
-        strcat(res, buffer);
+        my_memcpy(res + res_size - 1, buffer, res_size);
     }
 
     return res;
