@@ -37,17 +37,13 @@ int load_table(Table *table, const char *filename) {
         return E_NULLPTR;
     }
 
-    table->filename = strdup(filename);
-    if (!table->filename) {
-        return E_ALLOC;
-    }
-
     table->fp = fopen(filename, "rb+");
     if (!table->fp) {
         return E_NOFILE;
     }
 
-    read_params(table->fp, &(table->msize), &(table->csize));
+    int buf = 0;
+    read_params(table->fp, &(table->msize), &(buf));
 
     return E_OK;
 }
@@ -71,7 +67,8 @@ int save_table(Table *table) {
         return E_NOFILE;
     }
 
-    write_params(table->fp, &(table->msize), &(table->csize));
+    int buf = 0;
+    write_params(table->fp, &(table->msize), &(buf));
     fflush(table->fp);
 
     return E_OK;
@@ -111,7 +108,6 @@ void free_table(Table *table) {
         return ;
     }
 
-    free(table->filename);
     free(table);
 }
 
@@ -128,7 +124,7 @@ int f_print_element(FILE *fp, const KeySpace *element, const Item *item) {
     InfoType data;
 
     read_at(fp, element->key_offset, &key, sizeof(KeyType), SEEK_SET);
-    read_at(fp, item->offset, &data, sizeof(Infotype), SEEK_SET);
+    read_at(fp, item->offset, &data, sizeof(InfoType), SEEK_SET);
 
     printf(
             ELEM_FMT,
@@ -188,7 +184,7 @@ int f_search(const Table *table, KeyType key, RelType elem_release, int has_rele
         read_at(table->fp, offset, &cur_element, sizeof(KeySpace), SEEK_SET);
 
         if (cur_element.busy) {
-            read_at(table->fp, cur_element.key_offset, cur_key, cur_element.key_len + 1, SEEK_SET);
+            read_at(table->fp, cur_element.key_offset, &cur_key, sizeof(size_t), SEEK_SET);
 
             if (compare_keys(cur_key, key, cur_element.release, elem_release, has_release)) {
                 *last_idx = i + 1;
@@ -239,16 +235,15 @@ int f_insert(Table *table, KeyType key, InfoType data) {
     for (int i = 0; i < table->msize; ++i) {
         int idx = hash(table, key, i);
         long offset = sizeof(int) + idx * (sizeof(KeySpace) + sizeof(Item));
-        fseek(table->fp, offset, SEEK_SET);
 
         KeySpace cur_element;
         Item cur_item;
-        fread(&cur_element, sizeof(KeySpace), 1, table->fp);
-        fread(&cur_item, sizeof(Item), 1, table->fp);
+
+        read_at(table->fp, offset, &cur_element, sizeof(KeySpace), SEEK_SET);
+        read_at(table->fp, offset + sizeof(KeySpace), &cur_item, sizeof(Item), SEEK_SET);
 
         if (cur_element.busy) {
-            fseek(table->fp, cur_element.key_offset, SEEK_SET);
-            fread(&tmp_key, sizeof(KeyType), 1, table->fp);
+            read_at(table->fp, cur_element.key_offset, &tmp_key, sizeof(KeyType), SEEK_SET);
 
             if (compare_keys(tmp_key, key, 0, 0, 0)) {
                 release += 1;
@@ -264,23 +259,20 @@ int f_insert(Table *table, KeyType key, InfoType data) {
                 fseek(table->fp, 0, SEEK_END);
 
                 cur_element.key_offset = ftell(table->fp);
-                fwrite(&key, sizeof(KeyType), 1, table->fp);
+                write_at(table->fp, 0, &key, sizeof(KeyType), SEEK_END);
 
                 cur_item.offset = ftell(table->fp);
-                fwrite(&data, sizeof(InfoType), 1, table->fp);
+                write_at(table->fp, 0 + cur_element.key_offset, &data, sizeof(InfoType), SEEK_END);
+
+
             }
             else {
-                fseek(table->fp, cur_element.key_offset, SEEK_SET);
-                fwrite(&key, sizeof(KeyType), 1, table->fp);
-
-                fseek(table->fp, cur_item.offset, SEEK_SET);
-                fwrite(&data, sizeof(InfoType), 1, table->fp);
+                write_at(table->fp, cur_element.key_offset, &key, sizeof(KeyType), SEEK_SET);
+                write_at(table->fp ,cur_item.offset, &data, sizeof(InfoType), SEEK_SET);
             }
 
-            fseek(table->fp, offset, SEEK_SET);
-            fwrite(&cur_element, sizeof(KeySpace), 1, table->fp);
-            fwrite(&cur_item, sizeof(Item), 1, table->fp); // TODO: put under condition
-
+            write_at(table->fp, offset, &cur_element, sizeof(KeySpace), SEEK_SET);
+            write_at(table->fp, offset + sizeof(KeySpace), &cur_item, sizeof(Item), SEEK_SET);
 
             return E_OK;
         }
